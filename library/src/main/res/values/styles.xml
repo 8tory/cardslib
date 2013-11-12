@@ -151,7 +151,6 @@
     <!-- Style for Thumbnail ******************************************************-->
 
     <style name="card_thumbnail_image">
-        <item name="android:layout_width">@dimen/card_thumbnail_width</item>
         <item name="android:layout_height">@dimen/card_thumbnail_height</item>
         <item name="android:layout_gravity">center</item>
         <item name="android:gravity">center</item>
