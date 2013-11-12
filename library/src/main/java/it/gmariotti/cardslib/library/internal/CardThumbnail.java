@@ -83,6 +83,11 @@ public class CardThumbnail extends BaseCard {
     protected String urlResource;
 
     /**
+     * Resource Drawable Local File
+     */
+    protected String fileResource;
+
+    /**
      *  Uses an external library to load image
      */
     protected boolean mExternalUsage=false;
@@ -167,6 +172,24 @@ public class CardThumbnail extends BaseCard {
      */
     public void setUrlResource(String urlResource) {
         this.urlResource = urlResource;
+    }
+
+    /**
+     * Returns the local file path for Thumbnail
+     *
+     * @return url
+     */
+    public String getFileResource() {
+        return fileResource;
+    }
+
+    /**
+     * Sets the local file path for thumbnail
+     *
+     * @param fileResource url
+     */
+    public void setFileResource(String fileResource) {
+        this.fileResource = fileResource;
     }
 
     /**
