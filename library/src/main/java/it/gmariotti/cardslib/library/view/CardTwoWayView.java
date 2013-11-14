@@ -33,11 +33,11 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.AbsListView;
 import android.widget.ListAdapter;
-import android.widget.ListView;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import org.lucasr.twowayview.TwoWayView;
 
 import it.gmariotti.cardslib.library.R;
 import it.gmariotti.cardslib.library.internal.Card;
@@ -49,7 +49,7 @@ import it.gmariotti.cardslib.library.internal.CardArrayAdapter;
  * </p>
  * Usage:
  * <pre><code>
- *    <it.gmariotti.cardslib.library.view.CardListView
+ *    <org.lucasr.twowayview.TwoWayView
  *      android:layout_width="match_parent"
  *      android:layout_height="match_parent"
  *      android:id="@+id/listId"
@@ -58,19 +58,19 @@ import it.gmariotti.cardslib.library.internal.CardArrayAdapter;
  * It provides a default layout id for each row @layout/list_card_layout
  * Use can easily customize it using card:list_card_layout_resourceID attr in your xml layout.
  * </p>
- * Use this code to populate the list view
+ * Use this code to populate the two way view
  * <pre><code>
  * CardListView listView = (CardListView) getActivity().findViewById(R.id.listId);
  * listView.setAdapter(mCardArrayAdapter);
  * </code></pre>
  * </p>
- * Currently you have to use the same inner layout for each card in listView.
+ * Currently you have to use the same inner layout for each card in TwoWayView.
  * </p>
  * @author Gabriele Mariotti (gabri.mariotti@gmail.com)
  */
-public class CardListView extends ListView implements CardView.OnExpandListAnimatorListener {
+public class CardTwoWayView extends TwoWayView implements CardView.OnExpandListAnimatorListener {
 
-    protected static String TAG = "CardListView";
+    protected static String TAG = "CardTwoWayView";
 
     /**
      *  Card Array Adapter
@@ -101,17 +101,17 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
     //--------------------------------------------------------------------------
 
 
-    public CardListView(Context context) {
+    public CardTwoWayView(Context context) {
         super(context);
         init(null, 0);
     }
 
-    public CardListView(Context context, AttributeSet attrs) {
+    public CardTwoWayView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(attrs, 0);
     }
 
-    public CardListView(Context context, AttributeSet attrs, int defStyle) {
+    public CardTwoWayView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(attrs, defStyle);
     }
@@ -126,13 +126,13 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
      * @param attrs
      * @param defStyle
      */
-    protected void init(AttributeSet attrs, int defStyle){
+    protected void init(AttributeSet attrs, int defStyle) {
 
         //Init attrs
         initAttrs(attrs,defStyle);
 
         //Set divider to 0dp
-        setDividerHeight(0);
+        //setDividerHeight(0);
 
     }
 
@@ -168,16 +168,16 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
      */
     @Override
     public void setAdapter(ListAdapter adapter) {
-        if (adapter instanceof CardArrayAdapter){
+        if (adapter instanceof CardArrayAdapter) {
             setAdapter((CardArrayAdapter)adapter);
-        }else{
-            Log.e(TAG,"The CardListView only accepts CardArrayAdapters" );
+        } else {
+            Log.e(TAG,"The CardTwoWayView only accepts CardArrayAdapters" );
             super.setAdapter(null);
         }
     }
 
     /**
-     * Set {@link CardArrayAdapter} and layout used by items in ListView
+     * Set {@link CardArrayAdapter} and layout used by items in TwoWayView
      *
      * @param adapter {@link CardArrayAdapter}
      */
@@ -189,7 +189,7 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
 
         adapter.setParentView(this);
         adapter.setExpandListAnimatorListener(this);
-        mAdapter=adapter;
+        mAdapter = adapter;
     }
 
     //--------------------------------------------------------------------------
@@ -207,8 +207,7 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
     }
 
     private void prepareExpandView(final CardView view,final View expandingLayout) {
-        final Card card = (Card)getItemAtPosition(getPositionForView
-                (view));
+        final Card card = (Card)getItemAtPosition(getPositionForView(view));
 
         /* Store the original top and bottom bounds of all the cells.*/
         final int oldTop = view.getTop();
@@ -219,17 +218,17 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
         int childCount = getChildCount();
         for (int i = 0; i < childCount; i++) {
             View v = getChildAt(i);
-            if (Build.VERSION.SDK_INT >= 16){
+            if (Build.VERSION.SDK_INT >= 16) {
                 v.setHasTransientState(true);
             }
             oldCoordinates.put(v, new int[] {v.getTop(), v.getBottom()});
         }
 
          /* Update the layout so the extra content becomes visible.*/
-        if (expandingLayout!=null)
+        if (expandingLayout != null)
             expandingLayout.setVisibility(View.VISIBLE);
 
-        /* Add an onPreDraw Listener to the listview. onPreDraw will get invoked after onLayout
+        /* Add an onPreDraw Listener to the TwoWayView. onPreDraw will get invoked after onLayout
         * and onMeasure have run but before anything has been drawn. This
         * means that the final post layout properties for all the items have already been
         * determined, but still have not been rendered onto the screen.*/
@@ -243,9 +242,9 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
                     mShouldRemoveObserver = true;
 
                     /* Calculate what the parameters should be for setSelectionFromTop.
-                    * The ListView must be offset in a way, such that after the animation
+                    * The TwoWayView must be offset in a way, such that after the animation
                     * takes place, all the cells that remain visible are rendered completely
-                    * by the ListView.*/
+                    * by the TwoWayView.*/
                     int newTop = view.getTop();
                     int newBottom = view.getBottom();
 
@@ -279,12 +278,12 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
                         firstChildStartTop = 0;
                     }
 
-                    setSelectionFromTop(firstVisiblePosition, firstChildStartTop - deltaTop);
+                    //setSelectionFromTop(firstVisiblePosition, firstChildStartTop - deltaTop);
 
                     /* Request another layout to update the layout parameters of the cells.*/
                     requestLayout();
 
-                    /* Return false such that the ListView does not redraw its contents on
+                    /* Return false such that the TwoWayView does not redraw its contents on
                      * this layout but only updates all the parameters associated with its
                      * children.*/
                     return false;
@@ -302,10 +301,10 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
                 int index = indexOfChild(view);
 
                 /* Loop through all the views that were on the screen before the cell was
-                *  expanded. Some cells will still be children of the ListView while
-                *  others will not. The cells that remain children of the ListView
+                *  expanded. Some cells will still be children of the TwoWayView while
+                *  others will not. The cells that remain children of the TwoWayView
                 *  simply have their bounds animated appropriately. The cells that are no
-                *  longer children of the ListView also have their bounds animated, but
+                *  longer children of the TwoWayView also have their bounds animated, but
                 *  must also be added to a list of views which will be drawn in dispatchDraw.*/
                 for (View v: oldCoordinates.keySet()) {
                     int[] old = oldCoordinates.get(v);
@@ -333,7 +332,7 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
                 animations.add(ObjectAnimator.ofFloat(expandingLayout,
                         View.ALPHA, 0, 1));
 
-                /* Disabled the ListView for the duration of the animation.*/
+                /* Disabled the TwoWayView for the duration of the animation.*/
                 setEnabled(false);
                 setClickable(false);
 
@@ -348,14 +347,14 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
                         setClickable(true);
                         if (mViewsToDraw.size() > 0) {
                             for (View v : mViewsToDraw) {
-                                if (Build.VERSION.SDK_INT >= 16){
+                                if (Build.VERSION.SDK_INT >= 16) {
                                     v.setHasTransientState(false);
                                 }
                             }
                         }
                         mViewsToDraw.clear();
 
-                        if (card.getOnExpandAnimatorEndListener()!=null)
+                        if (card.getOnExpandAnimatorEndListener() != null)
                             card.getOnExpandAnimatorEndListener().onExpandEnd(card);
                     }
                 });
@@ -372,11 +371,11 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
      *
      * 1. Update the layout parameters of the view clicked so as to minimize its height
      *    to the original collapsed (default) state.
-     * 2. After invoking a layout, the listview will shift all the cells so as to display
-     *    them most efficiently. Therefore, during the first predraw pass, the listview
+     * 2. After invoking a layout, the TwoWayView will shift all the cells so as to display
+     *    them most efficiently. Therefore, during the first predraw pass, the TwoWayView
      *    must be offset by some amount such that given the custom bound change upon
      *    collapse, all the cells that need to be on the screen after the layout
-     *    are rendered by the listview.
+     *    are rendered by the TwoWayView.
      * 3. On the second predraw pass, all the items are first returned to their original
      *    location (before the first layout).
      * 4. The collapsing view's bounds are animated to what the final values should be.
@@ -399,7 +398,7 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
         int childCount = getChildCount();
         for (int i = 0; i < childCount; i++) {
             View v = getChildAt(i);
-            if (Build.VERSION.SDK_INT >= 16){
+            if (Build.VERSION.SDK_INT >= 16) {
                 v.setHasTransientState(true);
             }
             oldCoordinates.put(v, new int [] {v.getTop(), v.getBottom()});
@@ -418,7 +417,7 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
 
                 if (!mShouldRemoveObserver) {
                     /*Same as for expandingView, the parameters for setSelectionFromTop must
-                    * be determined such that the necessary cells of the ListView are rendered
+                    * be determined such that the necessary cells of the TwoWayView are rendered
                     * and added to it.*/
                     mShouldRemoveObserver = true;
 
@@ -455,7 +454,7 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
                         firstChildStartTop = 0;
                     }
 
-                    setSelectionFromTop(firstVisiblePosition, firstChildStartTop - deltaTop);
+                    //setSelectionFromTop(firstVisiblePosition, firstChildStartTop - deltaTop);
 
                     requestLayout();
 
@@ -474,15 +473,15 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
                     View v = getChildAt(i);
                     int [] old = oldCoordinates.get(v);
                     if (old != null) {
-                        /* If the cell was present in the ListView before the collapse and
+                        /* If the cell was present in the TwoWayView before the collapse and
                         * after the collapse then the bounds are reset to their old values.*/
                         v.setTop(old[0]);
                         v.setBottom(old[1]);
-                        if (Build.VERSION.SDK_INT >= 16){
+                        if (Build.VERSION.SDK_INT >= 16) {
                             v.setHasTransientState(false);
                         }
                     } else {
-                        /* If the cell is present in the ListView after the collapse but
+                        /* If the cell is present in the TwoWayView after the collapse but
                          * not before the collapse then the bounds are calculated using
                          * the bottom and top translation of the collapsing cell.*/
                         int delta = i > index ? yTranslateBottom : -yTranslateTop;
@@ -523,7 +522,7 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
                 /* Adds an animation for fading out the extra content. */
                 animations.add(ObjectAnimator.ofFloat(expandingLayout, View.ALPHA, 1, 0));
 
-                /* Disabled the ListView for the duration of the animation.*/
+                /* Disabled the TwoWayView for the duration of the animation.*/
                 setEnabled(false);
                 setClickable(false);
 
@@ -534,8 +533,9 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         expandingLayout.setVisibility(View.GONE);
-                        view.setLayoutParams(new AbsListView.LayoutParams(AbsListView
-                                .LayoutParams.MATCH_PARENT, AbsListView.LayoutParams.WRAP_CONTENT));
+                        view.setLayoutParams(new AbsListView.LayoutParams(
+                                AbsListView.LayoutParams.MATCH_PARENT,
+                                AbsListView.LayoutParams.WRAP_CONTENT));
                         view.setExpanded(false);
                         setEnabled(true);
                         setClickable(true);
@@ -544,7 +544,7 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
                         * should persist in an expanded state with the extra content visible.*/
                         expandingLayout.setAlpha(1);
 
-                        if (card.getOnCollapseAnimatorEndListener()!=null)
+                        if (card.getOnCollapseAnimatorEndListener() != null)
                             card.getOnCollapseAnimatorEndListener().onCollapseEnd(card);
                     }
                 });
@@ -571,8 +571,8 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
      * the user has not interacted with yet. Furthermore, if the collapsed cell is
      * partially off screen when it is first clicked, it is translated such that its
      * full contents are visible. Lastly, this behaviour varies slightly near the bottom
-     * of the listview in order to account for the fact that the bottom bounds of the actual
-     * listview cannot be modified.
+     * of the TwoWayView in order to account for the fact that the bottom bounds of the actual
+     * TwoWayView cannot be modified.
      */
     private int[] getTopAndBottomTranslations(int top, int bottom, int yDelta,
                                               boolean isExpanding) {
@@ -587,7 +587,7 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
             if (isOverTop) {
                 yTranslateTop = top;
                 yTranslateBottom = yDelta - yTranslateTop;
-            } else if (isBelowBottom){
+            } else if (isBelowBottom) {
                 int deltaBelow = top + height + yDelta - getHeight();
                 yTranslateTop = top - deltaBelow < 0 ? top : deltaBelow;
                 yTranslateBottom = yDelta - yTranslateTop;
@@ -637,7 +637,7 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
     /**
      * By overriding dispatchDraw, we can draw the cells that disappear during the
      * expansion process. When the cell expands, some items below or above the expanding
-     * cell may be moved off screen and are thus no longer children of the ListView's
+     * cell may be moved off screen and are thus no longer children of the TwoWayView's
      * layout. By storing a reference to these views prior to the layout, and
      * guaranteeing that these cells do not get recycled, the cells can be drawn
      * directly onto the canvas during the animation process. After the animation

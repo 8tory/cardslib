@@ -28,10 +28,13 @@ import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
 import android.widget.AbsListView;
 import android.widget.ListView;
+import android.widget.AdapterView;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.lucasr.twowayview.TwoWayView;
 
 import it.gmariotti.cardslib.library.internal.Card;
 
@@ -84,7 +87,7 @@ public class SwipeDismissListViewTouchListener implements View.OnTouchListener {
     private long mAnimationTime;
 
     // Fixed properties
-    private ListView mListView;
+    private AdapterView mListView;
     private DismissCallbacks mCallbacks;
     private int mViewWidth = 1; // 1 and not 0 to prevent dividing by zero
 
@@ -97,6 +100,9 @@ public class SwipeDismissListViewTouchListener implements View.OnTouchListener {
     private int mDownPosition;
     private View mDownView;
     private boolean mPaused;
+
+    public interface OnScrollListener extends AbsListView.OnScrollListener, TwoWayView.OnScrollListener {
+    }
 
     /**
      * The callback interface used by {@link SwipeDismissListViewTouchListener} to inform its client
@@ -116,7 +122,7 @@ public class SwipeDismissListViewTouchListener implements View.OnTouchListener {
          * @param reverseSortedPositions An array of positions to dismiss, sorted in descending
          *                               order for convenience.
          */
-        void onDismiss(ListView listView, int[] reverseSortedPositions);
+        void onDismiss(View view, int[] reverseSortedPositions);
     }
 
     /**
@@ -126,7 +132,7 @@ public class SwipeDismissListViewTouchListener implements View.OnTouchListener {
      * @param callbacks The callback to trigger when the user has indicated that she would like to
      *                  dismiss one or more list items.
      */
-    public SwipeDismissListViewTouchListener(ListView listView, DismissCallbacks callbacks) {
+    public SwipeDismissListViewTouchListener(AdapterView listView, DismissCallbacks callbacks) {
         ViewConfiguration vc = ViewConfiguration.get(listView.getContext());
         mSlop = vc.getScaledTouchSlop();
         mMinFlingVelocity = vc.getScaledMinimumFlingVelocity() * 16;
@@ -155,8 +161,8 @@ public class SwipeDismissListViewTouchListener implements View.OnTouchListener {
      *
      * @see SwipeDismissListViewTouchListener
      */
-    public AbsListView.OnScrollListener makeScrollListener() {
-        return new AbsListView.OnScrollListener() {
+    public OnScrollListener makeScrollListener() {
+        return new OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView absListView, int scrollState) {
                 setEnabled(scrollState != AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL);
@@ -164,6 +170,15 @@ public class SwipeDismissListViewTouchListener implements View.OnTouchListener {
 
             @Override
             public void onScroll(AbsListView absListView, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onScrollStateChanged(TwoWayView twoWayView, int scrollState) {
+                setEnabled(scrollState != AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL);
+            }
+
+            @Override
+            public void onScroll(TwoWayView twoWayView, int i, int i1, int i2) {
             }
         };
     }

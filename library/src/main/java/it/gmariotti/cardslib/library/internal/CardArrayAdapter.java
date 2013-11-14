@@ -26,10 +26,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ListView;
+import android.widget.AdapterView;
 
 import java.util.HashMap;
 import java.util.List;
+
+import org.lucasr.twowayview.TwoWayView;
 
 import it.gmariotti.cardslib.library.R;
 import it.gmariotti.cardslib.library.internal.base.BaseCardArrayAdapter;
@@ -76,9 +80,11 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
     protected static String TAG = "CardArrayAdapter";
 
     /**
-     * {@link CardListView}
+     * {@link AdapterView}
      */
-    protected CardListView mCardListView;
+    protected AdapterView mParentView;
+
+    protected CardView.OnExpandListAnimatorListener mExpandListAnimatorListener;
 
     /**
      * Listener invoked when a card is swiped
@@ -188,10 +194,13 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
 
         if (card.isSwipeable()){
             if (mOnTouchListener == null){
-                mOnTouchListener = new SwipeDismissListViewTouchListener(mCardListView, mCallback);
+                mOnTouchListener = new SwipeDismissListViewTouchListener(mParentView, mCallback);
                 // Setting this scroll listener is required to ensure that during
                 // ListView scrolling, we don't look for swipes.
-                mCardListView.setOnScrollListener(mOnTouchListener.makeScrollListener());
+                if (mParentView instanceof AbsListView)
+                    ((AbsListView)mParentView).setOnScrollListener(mOnTouchListener.makeScrollListener());
+                else if (mParentView instanceof TwoWayView)
+                    ((TwoWayView)mParentView).setOnScrollListener(mOnTouchListener.makeScrollListener());
             }
 
             cardView.setOnTouchListener(mOnTouchListener);
@@ -210,7 +219,7 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
     protected void setupExpandCollapseListAnimation(CardView cardView) {
 
         if (cardView == null) return;
-        cardView.setOnExpandListAnimatorListener(mCardListView);
+        cardView.setOnExpandListAnimatorListener(mExpandListAnimatorListener);
     }
 
     // -------------------------------------------------------------
@@ -227,7 +236,7 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
         }
 
         @Override
-        public void onDismiss(ListView listView, int[] reverseSortedPositions) {
+        public void onDismiss(View view, int[] reverseSortedPositions) {
 
             int[] itemPositions=new int[reverseSortedPositions.length];
             String[] itemIds=new String[reverseSortedPositions.length];
@@ -310,19 +319,28 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
     // -------------------------------------------------------------
 
     /**
-     * @return {@link CardListView}
+     * @return {@link AdapterView}
      */
-    public CardListView getCardListView() {
-        return mCardListView;
+    public AdapterView getParentView() {
+        return mParentView;
     }
 
     /**
-     * Sets the {@link CardListView}
+     * Sets the {@link AdapterView}
      *
-     * @param cardListView cardListView
+     * @param AdapterView view
      */
-    public void setCardListView(CardListView cardListView) {
-        this.mCardListView = cardListView;
+    public void setParentView(AdapterView parent) {
+        this.mParentView = parent;
+    }
+
+    /**
+     * Sets the {@link CardView.OnExpandListAnimatorListener}
+     *
+     * @param CardView.OnExpandListAnimatorListener listener
+     */
+    public void setExpandListAnimatorListener(CardView.OnExpandListAnimatorListener listener) {
+        this.mExpandListAnimatorListener = listener;
     }
 
     /**
