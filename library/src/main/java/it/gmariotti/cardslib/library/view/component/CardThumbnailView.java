@@ -355,8 +355,8 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
                 reqWidth = 1000;
             }
 
-            if (reqWidth == 0) {
-                reqWidth = 1000;
+            if (reqHeight == 0) {
+                reqHeight = 1000;
             }
 
             // Calculate inSampleSize
@@ -386,8 +386,8 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
             reqWidth = 1000;
         }
 
-        if (reqWidth == 0) {
-            reqWidth = 1000;
+        if (reqHeight == 0) {
+            reqHeight = 1000;
         }
 
         // Calculate inSampleSize
