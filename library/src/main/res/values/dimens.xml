@@ -49,7 +49,7 @@
     <!-- Small Title Header -->
     <dimen name="card_header_simple_small_title_text_size">12sp</dimen>
     <dimen name="card_header_small_simple_title_padding_right">15dp</dimen>
-    <dimen name="card_header_simple_title_margin_top">10dp</dimen>
+    <dimen name="card_header_simple_title_margin_top">5dp</dimen>
 
     <!-- Content -->
     <dimen name="card_content_outer_view_margin_top">0dp</dimen>
