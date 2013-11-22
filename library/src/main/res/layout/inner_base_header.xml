@@ -32,6 +32,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/card_header_inner_simple_title"
-        style="@style/card.header_simple_title"/>
+        style="@style/card.header_simple_title"
+        android:textSize="16sp"
+        android:textColor="#b99770" />
 
 </LinearLayout>
