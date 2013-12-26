@@ -74,6 +74,11 @@ public abstract class BaseCard implements CardUIInferface {
      */
     protected int type=0;
 
+    /**
+     * User data
+     */
+    protected Object mUserData;
+
     // -------------------------------------------------------------
     //  Constructors
     // -------------------------------------------------------------
@@ -209,6 +214,24 @@ public abstract class BaseCard implements CardUIInferface {
      */
     public void setId(String id) {
         mId = id;
+    }
+
+    /**
+     * Retrieves the card user data
+     *
+     * @return userData
+     */
+    public Object getUserData() {
+        return mUserData;
+    }
+
+    /**
+     * Set the card user data
+     *
+     * @param userData
+     */
+    public void setUserData(Object userData) {
+        mUserData = userData;
     }
 
     /**
