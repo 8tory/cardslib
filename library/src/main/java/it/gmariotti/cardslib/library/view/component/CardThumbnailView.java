@@ -18,18 +18,14 @@
 
 package it.gmariotti.cardslib.library.view.component;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
-import android.os.Build;
+import android.net.Uri;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,14 +33,13 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.net.URL;
+import java.io.File;
+
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 import it.gmariotti.cardslib.library.Constants;
 import it.gmariotti.cardslib.library.R;
 import it.gmariotti.cardslib.library.internal.CardThumbnail;
-import it.gmariotti.cardslib.library.utils.CacheUtil;
 import it.gmariotti.cardslib.library.view.base.CardViewInterface;
 
 /**
@@ -172,33 +167,6 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
 
         //Get ImageVIew
         mImageView= (ImageView) findViewById(R.id.card_thumbnail_image);
-
-
-        // Get max available VM memory, exceeding this amount will throw an
-        // OutOfMemory exception. Stored in kilobytes as LruCache takes an
-        // int in its constructor.
-        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
-
-        // Use 1/8th of the available memory for this memory cache.
-        final int cacheSize = maxMemory / 8;
-
-        mMemoryCache = CacheUtil.getMemoryCache();
-        if (mMemoryCache==null){
-            mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
-
-                @Override
-                protected int sizeOf(String key, Bitmap bitmap) {
-                    // The cache size will be measured in kilobytes rather than
-                    // number of items.
-                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB_MR1) {
-                        return bitmap.getByteCount() / 1024;
-                    } else {
-                        return bitmap.getRowBytes() * bitmap.getHeight() / 1024;
-                    }
-                }
-            };
-            CacheUtil.putMemoryCache(mMemoryCache);
-        }
     }
 
     //--------------------------------------------------------------------------
@@ -245,9 +213,9 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
             if(mCardThumbnail.getDrawableResource()>0)
                 loadBitmap(mCardThumbnail.getDrawableResource(), mImageView);
             else if (mCardThumbnail.getUrlResource() != null)
-                loadBitmapUrl(mCardThumbnail.getUrlResource(), mImageView);
+                loadBitmap(mCardThumbnail.getUrlResource(), mImageView);
             else if (mCardThumbnail.getFileResource() != null)
-                loadBitmapFile(mCardThumbnail.getFileResource(), mImageView);
+                loadBitmap(new File(mCardThumbnail.getFileResource()), mImageView);
             else
                 loadBitmap(mCardThumbnail.getErrorResourceId(), mImageView);
         }
@@ -258,459 +226,20 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
     //--------------------------------------------------------------------------
 
     public void loadBitmap(int resId, ImageView imageView) {
-        final String imageKey = String.valueOf(resId);
-        final Bitmap bitmap = getBitmapFromMemCache(imageKey);
-
-        if (bitmap != null) {
-            imageView.setImageBitmap(bitmap);
-            sendBroadcast();
-        } else {
-            if (cancelPotentialWork(resId, imageView)) {
-                final BitmapWorkerTask task = new BitmapWorkerTask(imageView);
-                final AsyncDrawable asyncDrawable =
-                        new AsyncDrawable(getResources(), null, task);
-                imageView.setImageDrawable(asyncDrawable);
-                task.execute(resId);
-            }
-        }
+        Resources resources = getResources();
+        Uri uri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + resources
+                .getResourcePackageName(resId) + '/' + resources.getResourceTypeName(resId) +
+                '/' + resources.getResourceEntryName(resId));
+        loadBitmap(uri.toString(), imageView);
     }
 
-    public void loadBitmapUrl(String url, ImageView imageView) {
-        final String imageKey = url;
-        final Bitmap bitmap = getBitmapFromMemCache(imageKey);
-
-        if (bitmap != null){
-            imageView.setImageBitmap(bitmap);
-            sendBroadcast();
-        }else{
-            if (cancelPotentialUrlWork(url, imageView)) {
-                final BitmapWorkerUrlTask task = new BitmapWorkerUrlTask(imageView);
-                final AsyncDrawableUrl asyncDrawable =
-                        new AsyncDrawableUrl(getResources(), null, task);
-                imageView.setImageDrawable(asyncDrawable);
-                task.execute(url);
-            }
-        }
+    public void loadBitmap(File file, ImageView imageView) {
+        Uri uri = Uri.fromFile(file);
+        loadBitmap(uri.toString(), imageView);
     }
 
-    public void loadBitmapFile(String path, ImageView imageView) {
-        final String imageKey = path;
-        final Bitmap bitmap = getBitmapFromMemCache(imageKey);
-
-        if (bitmap != null) {
-            imageView.setImageBitmap(bitmap);
-            sendBroadcast();
-        } else {
-            if (cancelPotentialFileWork(path, imageView)) {
-                final BitmapWorkerFileTask task = new BitmapWorkerFileTask(imageView);
-                final AsyncDrawableFile asyncDrawable =
-                        new AsyncDrawableFile(getResources(), null, task);
-                imageView.setImageDrawable(asyncDrawable);
-                task.execute(path);
-            }
-        }
-    }
-
-    protected void addBitmapToMemoryCache(String key, Bitmap bitmap) {
-        if (!mLoadingErrorResource && getBitmapFromMemCache(key) == null) {
-            if (key!=null && bitmap!=null){
-                mMemoryCache.put(key, bitmap);
-            }
-        }
-    }
-
-    protected Bitmap getBitmapFromMemCache(String key) {
-        if (key==null) return null;
-        return mMemoryCache.get(key);
-    }
-
-
-
-    public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
-                                                         int reqWidth, int reqHeight) {
-
-        // First decode with inJustDecodeBounds=true to check dimensions
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeResource(res, resId, options);
-
-        // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-
-        // Decode bitmap with inSampleSize set
-        options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeResource(res, resId, options);
-    }
-
-    public static Bitmap decodeSampledBitmapFromUrl(String resUrl,
-            int reqWidth, int reqHeight) {
-        try {
-            // First decode with inJustDecodeBounds=true to check dimensions
-            final BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
-            //BitmapFactory.decodeResource(res, resId, options);
-            BitmapFactory.decodeStream(new URL(resUrl).openStream());
-
-            if (reqWidth == 0) {
-                reqWidth = 1000;
-            }
-
-            if (reqHeight == 0) {
-                reqHeight = 1000;
-            }
-
-            // Calculate inSampleSize
-            options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-
-            // Decode bitmap with inSampleSize set
-            options.inJustDecodeBounds = false;
-            return BitmapFactory.decodeStream(new URL(resUrl).openStream());
-
-        }catch (IOException ioe){
-            //Url not available
-            //ioe.printStackTrace();
-            Log.w("CardThumbnailView","Error while retrieving image",ioe);
-        }
-        return null;
-    }
-
-    public static Bitmap decodeSampledBitmapFromFile(String path,
-            int reqWidth, int reqHeight) {
-        // First decode with inJustDecodeBounds=true to check dimensions
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(path, options);
-
-        if (reqWidth == 0) {
-            reqWidth = 1000;
-        }
-
-        if (reqHeight == 0) {
-            reqHeight = 1000;
-        }
-
-        // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-
-        // Decode bitmap with inSampleSize set
-        options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeFile(path, options);
-    }
-    public static int calculateInSampleSize(
-            BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Raw height and width of image
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-
-        if (reqWidth == 0 || reqHeight == 0) return inSampleSize;
-
-        if (height > reqHeight || width > reqWidth) {
-
-            // Calculate ratios of height and width to requested height and width
-            final int heightRatio = Math.round((float) height / (float) reqHeight);
-            final int widthRatio = Math.round((float) width / (float) reqWidth);
-
-            // Choose the smallest ratio as inSampleSize value, this will guarantee
-            // a final image with both dimensions larger than or equal to the
-            // requested height and width.
-            inSampleSize = heightRatio < widthRatio ? heightRatio : widthRatio;
-        }
-
-        return inSampleSize;
-    }
-
-    //--------------------------------------------------------------------------
-    // Worker
-    //--------------------------------------------------------------------------
-
-    public static boolean cancelPotentialWork(int resId, ImageView imageView) {
-        final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
-
-        if (bitmapWorkerTask != null) {
-            final int bitmapWorkerTaskResId = bitmapWorkerTask.resId;
-            if (bitmapWorkerTaskResId != resId) {
-                // Cancel previous task
-                bitmapWorkerTask.cancel(true);
-            } else {
-                // The same work is already in progress
-                return false;
-            }
-        }
-        // No task associated with the ImageView, or an existing task was cancelled
-        return true;
-    }
-
-    public static boolean cancelPotentialUrlWork(String url, ImageView imageView) {
-        final BitmapWorkerUrlTask bitmapWorkerTask = getBitmapWorkerUrlTask(imageView);
-
-        if (bitmapWorkerTask != null) {
-            final String bitmapWorkerTaskResUrl = bitmapWorkerTask.resUrl;
-            if (!bitmapWorkerTaskResUrl.equals(url)) {
-                // Cancel previous task
-                bitmapWorkerTask.cancel(true);
-            } else {
-                // The same work is already in progress
-                return false;
-            }
-        }
-        // No task associated with the ImageView, or an existing task was cancelled
-        return true;
-    }
-
-    public static boolean cancelPotentialFileWork(String path, ImageView imageView) {
-        final BitmapWorkerFileTask bitmapWorkerTask = getBitmapWorkerFileTask(imageView);
-
-        if (bitmapWorkerTask != null) {
-            final String bitmapWorkerTaskPath = bitmapWorkerTask.path;
-            if (!bitmapWorkerTaskPath.equals(path)) {
-                // Cancel previous task
-                bitmapWorkerTask.cancel(true);
-            } else {
-                // The same work is already in progress
-                return false;
-            }
-        }
-        // No task associated with the ImageView, or an existing task was cancelled
-        return true;
-    }
-
-    protected static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView) {
-        if (imageView != null) {
-            final Drawable drawable = imageView.getDrawable();
-            if (drawable instanceof AsyncDrawable) {
-                final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
-                return asyncDrawable.getBitmapWorkerTask();
-            }
-        }
-        return null;
-    }
-
-    protected static BitmapWorkerUrlTask getBitmapWorkerUrlTask(ImageView imageView) {
-        if (imageView != null) {
-            final Drawable drawable = imageView.getDrawable();
-            if (drawable instanceof AsyncDrawableUrl) {
-                final AsyncDrawableUrl asyncDrawable = (AsyncDrawableUrl) drawable;
-                return asyncDrawable.getBitmapWorkerUrlTask();
-            }
-        }
-        return null;
-    }
-
-    protected static BitmapWorkerFileTask getBitmapWorkerFileTask(ImageView imageView) {
-        if (imageView != null) {
-            final Drawable drawable = imageView.getDrawable();
-            if (drawable instanceof AsyncDrawableFile) {
-                final AsyncDrawableFile asyncDrawable = (AsyncDrawableFile) drawable;
-                return asyncDrawable.getBitmapWorkerFileTask();
-            }
-        }
-        return null;
-    }
-
-    class BitmapWorkerTask extends AsyncTask<Integer, Void, Bitmap> {
-        private final WeakReference<ImageView> imageViewReference;
-        private int resId = 0;
-
-        public BitmapWorkerTask(ImageView imageView) {
-            // Use a WeakReference to ensure the ImageView can be garbage collected
-            imageViewReference = new WeakReference<ImageView>(imageView);
-        }
-
-        // Decode image in background.
-        @Override
-        protected Bitmap doInBackground(Integer... params) {
-            resId = params[0];
-            ImageView thumbnail = imageViewReference.get();
-            Bitmap bitmap = decodeSampledBitmapFromResource(getResources(), resId, thumbnail.getWidth(),
-                    thumbnail.getHeight());
-            if (bitmap!=null){
-                addBitmapToMemoryCache(String.valueOf(params[0]), bitmap);
-                return bitmap;
-            }else{
-                return (Bitmap)null;
-            }
-
-        }
-
-        // Once complete, see if ImageView is still around and set bitmap.
-        @Override
-        protected void onPostExecute(Bitmap bitmap) {
-            if (isCancelled()) {
-                bitmap = null;
-            }
-
-            if (imageViewReference != null && bitmap != null) {
-                final ImageView imageView = imageViewReference.get();
-                final BitmapWorkerTask bitmapWorkerTask =
-                        getBitmapWorkerTask(imageView);
-                if (this == bitmapWorkerTask && imageView != null) {
-                    imageView.setImageBitmap(bitmap);
-                    sendBroadcast();
-                    mLoadingErrorResource=false;
-                }
-            }else{
-                sendBroadcast(false);
-                if (mCardThumbnail!=null && mCardThumbnail.getErrorResourceId()!=0){
-                    if (!mLoadingErrorResource){
-                        //To avoid a loop
-                        loadBitmap(mCardThumbnail.getErrorResourceId(), mImageView);
-                    }
-                    mLoadingErrorResource=true;
-                }
-            }
-        }
-    }
-
-    class BitmapWorkerUrlTask extends AsyncTask<String, Void, Bitmap> {
-        private final WeakReference<ImageView> imageViewReference;
-        private String resUrl = "";
-
-        public BitmapWorkerUrlTask(ImageView imageView) {
-            // Use a WeakReference to ensure the ImageView can be garbage collected
-            imageViewReference = new WeakReference<ImageView>(imageView);
-        }
-
-        // Decode image in background.
-        @Override
-        protected Bitmap doInBackground(String... params) {
-            resUrl = params[0];
-            ImageView thumbnail = imageViewReference.get();
-            Bitmap bitmap = decodeSampledBitmapFromUrl(resUrl, thumbnail.getWidth(),
-                    thumbnail.getHeight());
-            if (bitmap!=null){
-                addBitmapToMemoryCache(String.valueOf(params[0]), bitmap);
-                return bitmap;
-            }else
-                return (Bitmap) null;
-        }
-
-        // Once complete, see if ImageView is still around and set bitmap.
-        @Override
-        protected void onPostExecute(Bitmap bitmap) {
-            if (isCancelled()) {
-                bitmap = null;
-            }
-
-            if (imageViewReference != null && bitmap != null) {
-                final ImageView imageView = imageViewReference.get();
-                final BitmapWorkerUrlTask bitmapWorkerTask =
-                        getBitmapWorkerUrlTask(imageView);
-                if (this == bitmapWorkerTask && imageView != null) {
-                    imageView.setImageBitmap(bitmap);
-                    sendBroadcast();
-                    mLoadingErrorResource=false;
-                }
-            }else{
-                sendBroadcast(false);
-                if (mCardThumbnail!=null && mCardThumbnail.getErrorResourceId()!=0){
-                    if (!mLoadingErrorResource){
-                        //To avoid a loop
-                        loadBitmap(mCardThumbnail.getErrorResourceId(), mImageView);
-                    }
-                    mLoadingErrorResource=true;
-                }
-            }
-        }
-    }
-
-    class BitmapWorkerFileTask extends AsyncTask<String, Void, Bitmap> {
-        private final WeakReference<ImageView> imageViewReference;
-        private String path = "";
-
-        public BitmapWorkerFileTask(ImageView imageView) {
-            // Use a WeakReference to ensure the ImageView can be garbage collected
-            imageViewReference = new WeakReference<ImageView>(imageView);
-        }
-
-        // Decode image in background.
-        @Override
-        protected Bitmap doInBackground(String... params) {
-            path = params[0];
-            ImageView thumbnail = imageViewReference.get();
-            Bitmap bitmap = decodeSampledBitmapFromFile(path, thumbnail.getWidth(),
-                    thumbnail.getHeight());
-            if (bitmap != null) {
-                addBitmapToMemoryCache(String.valueOf(params[0]), bitmap);
-                return bitmap;
-            } else {
-                return (Bitmap) null;
-            }
-        }
-
-        // Once complete, see if ImageView is still around and set bitmap.
-        @Override
-        protected void onPostExecute(Bitmap bitmap) {
-            if (isCancelled()) {
-                bitmap = null;
-            }
-
-            if (imageViewReference != null && bitmap != null) {
-                final ImageView imageView = imageViewReference.get();
-                final BitmapWorkerFileTask bitmapWorkerTask =
-                        getBitmapWorkerFileTask(imageView);
-                if (this == bitmapWorkerTask && imageView != null) {
-                    imageView.setImageBitmap(bitmap);
-                    sendBroadcast();
-                    mLoadingErrorResource = false;
-                }
-            } else {
-                sendBroadcast(false);
-                if (mCardThumbnail != null && mCardThumbnail.getErrorResourceId() != 0) {
-                    if (!mLoadingErrorResource) {
-                        //To avoid a loop
-                        loadBitmap(mCardThumbnail.getErrorResourceId(), mImageView);
-                    }
-                    mLoadingErrorResource = true;
-                }
-            }
-        }
-    }
-
-    static class AsyncDrawable extends BitmapDrawable {
-        private final WeakReference<BitmapWorkerTask> bitmapWorkerTaskReference;
-
-        public AsyncDrawable(Resources res, Bitmap bitmap,
-                             BitmapWorkerTask bitmapWorkerTask) {
-            super(res, bitmap);
-            bitmapWorkerTaskReference =
-                    new WeakReference<BitmapWorkerTask>(bitmapWorkerTask);
-        }
-
-        public BitmapWorkerTask getBitmapWorkerTask() {
-            return bitmapWorkerTaskReference.get();
-        }
-    }
-
-    static class AsyncDrawableUrl extends BitmapDrawable {
-        private final WeakReference<BitmapWorkerUrlTask> bitmapWorkerTaskReference;
-
-        public AsyncDrawableUrl(Resources res, Bitmap bitmap,
-                             BitmapWorkerUrlTask bitmapWorkerTask) {
-            super(res, bitmap);
-            bitmapWorkerTaskReference =
-                    new WeakReference<BitmapWorkerUrlTask>(bitmapWorkerTask);
-        }
-
-        public BitmapWorkerUrlTask getBitmapWorkerUrlTask() {
-            return bitmapWorkerTaskReference.get();
-        }
-    }
-
-    static class AsyncDrawableFile extends BitmapDrawable {
-        private final WeakReference<BitmapWorkerFileTask> bitmapWorkerTaskReference;
-
-        public AsyncDrawableFile(Resources res, Bitmap bitmap,
-                BitmapWorkerFileTask bitmapWorkerTask) {
-            super(res, bitmap);
-            bitmapWorkerTaskReference =
-                    new WeakReference<BitmapWorkerFileTask>(bitmapWorkerTask);
-        }
-
-        public BitmapWorkerFileTask getBitmapWorkerFileTask() {
-            return bitmapWorkerTaskReference.get();
-        }
+    public void loadBitmap(String uri, ImageView imageView) {
+        ImageLoader.getInstance().displayImage(uri, imageView);
     }
 
     //--------------------------------------------------------------------------
