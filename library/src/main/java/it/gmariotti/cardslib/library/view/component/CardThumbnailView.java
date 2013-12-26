@@ -57,6 +57,8 @@ import it.gmariotti.cardslib.library.view.base.CardViewInterface;
  */
 public class CardThumbnailView extends FrameLayout implements CardViewInterface {
 
+    public static final String SCHEME_DRAWABLE = "drawable";
+
     //--------------------------------------------------------------------------
     // Custom Attrs
     //--------------------------------------------------------------------------
@@ -226,11 +228,8 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
     //--------------------------------------------------------------------------
 
     public void loadBitmap(int resId, ImageView imageView) {
-        Resources resources = getResources();
-        Uri uri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + resources
-                .getResourcePackageName(resId) + '/' + resources.getResourceTypeName(resId) +
-                '/' + resources.getResourceEntryName(resId));
-        loadBitmap(uri.toString(), imageView);
+        String uriString = SCHEME_DRAWABLE + "://" + resId;
+        loadBitmap(uriString, imageView);
     }
 
     public void loadBitmap(File file, ImageView imageView) {
