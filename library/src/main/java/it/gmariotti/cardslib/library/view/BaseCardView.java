@@ -87,6 +87,10 @@ public class BaseCardView extends LinearLayout implements CardViewInterface {
      */
     protected boolean mForceReplaceInnerLayout =false;
 
+    private ViewAspectRatioMeasurer mAspectRatioMeasurer;
+
+    private float mAspectRatio;
+
     //--------------------------------------------------------------------------
     // Constructor
     //--------------------------------------------------------------------------
@@ -123,6 +127,10 @@ public class BaseCardView extends LinearLayout implements CardViewInterface {
         //Init view
         if (!isInEditMode())
             initView();
+
+        if (mAspectRatio > 0) {
+            mAspectRatioMeasurer = new ViewAspectRatioMeasurer(mAspectRatio);
+        }
     }
 
     /**
@@ -137,6 +145,7 @@ public class BaseCardView extends LinearLayout implements CardViewInterface {
                 attrs, R.styleable.card_options, defStyle, defStyle);
 
         try {
+            mAspectRatio = a.getFloat(R.styleable.card_options_aspect_ratio, -1);
             card_layout_resourceID = a.getResourceId(R.styleable.card_options_card_layout_resourceID, card_layout_resourceID);
         } finally {
             a.recycle();
@@ -288,5 +297,18 @@ public class BaseCardView extends LinearLayout implements CardViewInterface {
      */
     public void setForceReplaceInnerLayout(boolean forceReplaceInnerLayout) {
         this.mForceReplaceInnerLayout = forceReplaceInnerLayout;
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        if (mAspectRatioMeasurer != null) {
+            mAspectRatioMeasurer.measure(widthMeasureSpec, heightMeasureSpec);
+            widthMeasureSpec = MeasureSpec.makeMeasureSpec(mAspectRatioMeasurer.getMeasuredWidth(),
+                    MeasureSpec.EXACTLY);
+            heightMeasureSpec = MeasureSpec.makeMeasureSpec(mAspectRatioMeasurer.getMeasuredHeight(),
+                    MeasureSpec.EXACTLY);
+        }
+
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 }

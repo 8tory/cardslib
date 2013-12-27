@@ -23,7 +23,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.os.Build;
@@ -185,18 +184,11 @@ public class CardView extends BaseCardView {
      * @param attrs
      * @param defStyle
      */
+    @Override
     protected void initAttrs(AttributeSet attrs, int defStyle) {
 
         card_layout_resourceID = R.layout.card_layout;
-
-        TypedArray a = getContext().getTheme().obtainStyledAttributes(
-                attrs, R.styleable.card_options, defStyle, defStyle);
-
-        try {
-            card_layout_resourceID = a.getResourceId(R.styleable.card_options_card_layout_resourceID, this.card_layout_resourceID);
-        } finally {
-            a.recycle();
-        }
+        super.initAttrs(attrs, defStyle);
     }
 
     //--------------------------------------------------------------------------
