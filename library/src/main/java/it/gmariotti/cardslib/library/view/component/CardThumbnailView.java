@@ -266,7 +266,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
             @Override
             public void onLoadingStarted(String imageUri, View view) {
                 // onStableShowAfterFiveMilliseconds()
-                handler.postDelayed(r, 500);
+                handler.postDelayed(r, 1000);
             }
 
             @Override
