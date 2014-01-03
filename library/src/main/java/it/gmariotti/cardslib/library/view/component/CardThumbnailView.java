@@ -36,6 +36,8 @@ import android.widget.ImageView;
 import java.io.File;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.SimpleImageLoadingListener;
+import com.nostra13.universalimageloader.core.assist.FailReason;
 
 import it.gmariotti.cardslib.library.Constants;
 import it.gmariotti.cardslib.library.R;
@@ -238,7 +240,22 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
     }
 
     public void loadBitmap(String uri, ImageView imageView) {
-        ImageLoader.getInstance().displayImage(uri, imageView);
+        final View progressBar = (View) findViewById(R.id.progressBar);
+        //ImageLoader.getInstance().displayImage(uri, imageView);
+        ImageLoader.getInstance().displayImage(uri, imageView, new SimpleImageLoadingListener() {
+            @Override
+            public void onLoadingFailed(String imageUri, View view,
+                FailReason failReason) {
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onLoadingComplete(String imageUri, View view,
+                Bitmap loadedImage) {
+                ((ImageView) view).setImageBitmap(loadedImage);
+                if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+            }
+        });
     }
 
     //--------------------------------------------------------------------------
