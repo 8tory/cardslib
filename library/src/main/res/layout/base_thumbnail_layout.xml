@@ -18,6 +18,8 @@
   -->
 
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_gravity="center_vertical|center_horizontal"
+    android:gravity="center_vertical|center_horizontal"
     android:layout_height="wrap_content"
     android:layout_width="match_parent" >
 
@@ -29,9 +31,10 @@
 
     <ProgressBar
         android:id="@+id/progressBar"
+        android:layout_gravity="center_vertical|center_horizontal"
         android:layout_width="20dp"
         android:layout_height="20dp"
-        android:layout_centerInParent="true"
+        android:visibility="gone"
         />
 
     <it.gmariotti.cardslib.library.widget.SquareImageView

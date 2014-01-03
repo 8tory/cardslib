@@ -25,6 +25,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.LruCache;
 import android.view.LayoutInflater;
@@ -242,10 +243,31 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
     public void loadBitmap(String uri, ImageView imageView) {
         final View progressBar = (View) findViewById(R.id.progressBar);
         //ImageLoader.getInstance().displayImage(uri, imageView);
+        final Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+            }
+        };
+        final Handler handler = new Handler();
+
         ImageLoader.getInstance().displayImage(uri, imageView, new SimpleImageLoadingListener() {
+            @Override
+            public void onLoadingStarted(String imageUri, View view) {
+                // onStableShowAfterFiveMilliseconds()
+                handler.postDelayed(r, 500);
+            }
+
             @Override
             public void onLoadingFailed(String imageUri, View view,
                 FailReason failReason) {
+                handler.removeCallbacks(r);
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onLoadingCancelled(String imageUri, View view) {
+                handler.removeCallbacks(r);
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
             }
 
@@ -253,7 +275,8 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
             public void onLoadingComplete(String imageUri, View view,
                 Bitmap loadedImage) {
                 ((ImageView) view).setImageBitmap(loadedImage);
-                if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+                handler.removeCallbacks(r);
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
             }
         });
     }
