@@ -35,6 +35,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import java.io.File;
+import java.util.Random;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.SimpleImageLoadingListener;
@@ -59,6 +60,7 @@ import it.gmariotti.cardslib.library.view.base.CardViewInterface;
  * @author Gabriele Mariotti (gabri.mariotti@gmail.com)
  */
 public class CardThumbnailView extends FrameLayout implements CardViewInterface {
+    private static Boolean sShowProgressBar;
 
     public static final String SCHEME_DRAWABLE = "drawable";
 
@@ -137,6 +139,11 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
      * @param defStyle
      */
     protected void init(AttributeSet attrs, int defStyle){
+        if (sShowProgressBar == null) {
+            final Random random = new Random(System.currentTimeMillis());
+            sShowProgressBar = Boolean.valueOf(random.nextBoolean());
+        }
+
         //Init attrs
         initAttrs(attrs,defStyle);
 
@@ -242,7 +249,11 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
 
     public void loadBitmap(String uri, ImageView imageView) {
         final View progressBar = (View) findViewById(R.id.progressBar);
-        //ImageLoader.getInstance().displayImage(uri, imageView);
+        if (progressBar != null) progressBar.setVisibility(View.GONE);
+        sShowProgressBar = !sShowProgressBar;
+        if (!sShowProgressBar) {
+            ImageLoader.getInstance().displayImage(uri, imageView);
+        } else {
         final Runnable r = new Runnable() {
             @Override
             public void run() {
@@ -279,6 +290,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
             }
         });
+        }
     }
 
     //--------------------------------------------------------------------------
