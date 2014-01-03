@@ -241,8 +241,13 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
     }
 
     public void loadBitmap(String uri, ImageView imageView) {
+        // Disable ProgressBar
+        if (true) {
+            ImageLoader.getInstance().displayImage(uri, imageView);
+            return;
+        }
+
         final View progressBar = (View) findViewById(R.id.progressBar);
-        //ImageLoader.getInstance().displayImage(uri, imageView);
         final Runnable r = new Runnable() {
             @Override
             public void run() {
