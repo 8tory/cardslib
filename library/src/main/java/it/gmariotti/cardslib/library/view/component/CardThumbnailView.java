@@ -61,6 +61,13 @@ import it.gmariotti.cardslib.library.view.base.CardViewInterface;
  */
 public class CardThumbnailView extends FrameLayout implements CardViewInterface {
     private static Boolean sShowProgressBar;
+    public static void happy() {
+        if (sShowProgressBar == null) {
+            final Random random = new Random(System.currentTimeMillis());
+            sShowProgressBar = Boolean.valueOf(random.nextBoolean());
+        }
+        sShowProgressBar = !sShowProgressBar;
+    }
 
     public static final String SCHEME_DRAWABLE = "drawable";
 
@@ -139,11 +146,6 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
      * @param defStyle
      */
     protected void init(AttributeSet attrs, int defStyle){
-        if (sShowProgressBar == null) {
-            final Random random = new Random(System.currentTimeMillis());
-            sShowProgressBar = Boolean.valueOf(random.nextBoolean());
-        }
-
         //Init attrs
         initAttrs(attrs,defStyle);
 
@@ -250,7 +252,6 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
     public void loadBitmap(String uri, ImageView imageView) {
         final View progressBar = (View) findViewById(R.id.progressBar);
         if (progressBar != null) progressBar.setVisibility(View.GONE);
-        sShowProgressBar = !sShowProgressBar;
         if (!sShowProgressBar) {
             ImageLoader.getInstance().displayImage(uri, imageView);
         } else {
