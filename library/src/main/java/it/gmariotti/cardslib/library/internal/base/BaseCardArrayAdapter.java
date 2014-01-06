@@ -80,12 +80,14 @@ public abstract class BaseCardArrayAdapter extends ArrayAdapter<Card> {
 
     @Override
     public boolean isEnabled(int position) {
-        //Disable card if it is not clickable or longClickable
-        Card card = (Card) getItem(position);
-        if (card.isClickable() || card.isLongClickable())
-            return true;
-        else
-            return false;
+        try {
+            //Disable card if it is not clickable or longClickable
+            Card card = (Card) getItem(position);
+            if (card.isClickable() || card.isLongClickable())
+                return true;
+        } catch (Exception e) {
+        }
+        return false;
     }
 
     // -------------------------------------------------------------
