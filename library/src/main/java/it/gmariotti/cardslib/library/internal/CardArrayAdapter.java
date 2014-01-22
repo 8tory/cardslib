@@ -269,10 +269,7 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
                     if (res!=null){
                         String messageUndoBar = res.getQuantityString(R.plurals.list_card_undo_items, reverseSortedPositions.length, reverseSortedPositions.length);
 
-                        mUndoBarController.showUndoBar(
-                                false,
-                                messageUndoBar,
-                                itemUndo);
+                        mUndoBarController.showUndoBar(false, messageUndoBar, itemUndo, CardArrayAdapter.this);
                     }
                 }
 
@@ -372,7 +369,7 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
             if (mUndoBarController==null){
                 View undobar = ((Activity)mContext).findViewById(R.id.list_card_undobar);
                 if (undobar != null) {
-                    mUndoBarController = new UndoBarController(undobar, this);
+                    mUndoBarController = UndoBarController.getInstance(undobar);
                 }
             }
         }else{

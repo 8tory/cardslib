@@ -18,12 +18,11 @@ package it.gmariotti.cardslib.library.view.listener;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
-import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewPropertyAnimator;
+import android.widget.Button;
 import android.widget.TextView;
 
 import it.gmariotti.cardslib.library.R;
@@ -39,14 +38,18 @@ public class UndoBarController {
 
     private View mBarView;
     private TextView mMessageView;
+    private Button mButtonView;
     private ViewPropertyAnimator mBarAnimator;
-    private Handler mHideHandler = new Handler();
+    private Handler mHideHandler;
 
     private UndoListener mUndoListener;
 
     // State objects
     private Parcelable mUndoToken;
     private CharSequence mUndoMessage;
+
+    static private UndoBarController sUndoBarController;
+    static private View sBarView;
 
     /**
      * Interface to listen the undo controller actions
@@ -58,25 +61,29 @@ public class UndoBarController {
         void onUndo(Parcelable undoToken);
     }
 
-    public UndoBarController(View undoBarView, UndoListener undoListener) {
+    private UndoBarController(View undoBarView) {
+        mHideHandler = new Handler();
+
         mBarView = undoBarView;
         mBarAnimator = mBarView.animate();
-        mUndoListener = undoListener;
 
         mMessageView = (TextView) mBarView.findViewById(R.id.list_card_undobar_message);
-        mBarView.findViewById(R.id.list_card_undobar_button)
-                .setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        hideUndoBar(false);
-                        mUndoListener.onUndo(mUndoToken);
-                    }
-                });
-
         hideUndoBar(true);
+
+        mButtonView = (Button)mBarView.findViewById(R.id.list_card_undobar_button);
     }
 
-    public void showUndoBar(boolean immediate, CharSequence message, Parcelable undoToken) {
+    public static UndoBarController getInstance(View undoBarView) {
+        if ((sUndoBarController == null) || (sBarView != undoBarView)) {
+            sBarView = undoBarView;
+            sUndoBarController = new UndoBarController(undoBarView);
+        }
+
+        return sUndoBarController;
+    }
+
+    public void showUndoBar(boolean immediate, CharSequence message, Parcelable undoToken,
+            UndoListener undoListener) {
 
         mUndoToken = undoToken;
         mUndoMessage = message;
@@ -85,6 +92,15 @@ public class UndoBarController {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable,
                 mBarView.getResources().getInteger(R.integer.list_card_undobar_hide_delay));
+
+        mUndoListener = undoListener;
+        mButtonView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                hideUndoBar(false);
+                mUndoListener.onUndo(mUndoToken);
+            }
+        });
 
         mBarView.setVisibility(View.VISIBLE);
         if (immediate) {
@@ -107,7 +123,7 @@ public class UndoBarController {
             mBarView.setAlpha(0);
             mUndoMessage = null;
             mUndoToken = null;
-
+            mUndoListener = null;
         } else {
             mBarAnimator.cancel();
             mBarAnimator
@@ -120,24 +136,9 @@ public class UndoBarController {
                             mBarView.setVisibility(View.GONE);
                             mUndoMessage = null;
                             mUndoToken = null;
+                            mUndoListener = null;
                         }
                     });
-        }
-    }
-
-    public void onSaveInstanceState(Bundle outState) {
-        outState.putCharSequence("undo_message", mUndoMessage);
-        outState.putParcelable("undo_token", mUndoToken);
-    }
-
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            mUndoMessage = savedInstanceState.getCharSequence("undo_message");
-            mUndoToken = savedInstanceState.getParcelable("undo_token");
-
-            if (mUndoToken != null || !TextUtils.isEmpty(mUndoMessage)) {
-                showUndoBar(true, mUndoMessage, mUndoToken);
-            }
         }
     }
 
