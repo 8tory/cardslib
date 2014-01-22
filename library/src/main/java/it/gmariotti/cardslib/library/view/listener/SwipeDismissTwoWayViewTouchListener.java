@@ -53,7 +53,7 @@ import it.gmariotti.cardslib.library.internal.Card;
  * {@link ListView#setOnScrollListener(AbsListView.OnScrollListener)}, passing
  * in the scroll listener returned by {@link #makeScrollListener()}. If a scroll listener is
  * already assigned, the caller should still pass scroll changes through to this listener. This will
- * ensure that this {@link SwipeDismissListViewTouchListener} is paused during list view
+ * ensure that this {@link SwipeDismissTwoWayViewTouchListener} is paused during list view
  * scrolling.</p>
  *
  * <p>Example usage:</p>
@@ -78,7 +78,7 @@ import it.gmariotti.cardslib.library.internal.Card;
  * ViewPropertyAnimator}.</p>
  *
  */
-public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterViewTouchListener {
+public class SwipeDismissTwoWayViewTouchListener implements SwipeDismissAdapterViewTouchListener {
     // Cached ViewConfiguration and system-wide constant values
     private int mSlop;
     private int mMinFlingVelocity;
@@ -86,14 +86,14 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
     private long mAnimationTime;
 
     // Fixed properties
-    private ListView mListView;
+    private TwoWayView mListView;
     private DismissCallbacks mCallbacks;
     private int mViewWidth = 1; // 1 and not 0 to prevent dividing by zero
 
     // Transient properties
     private List<PendingDismissData> mPendingDismisses = new ArrayList<PendingDismissData>();
     private int mDismissAnimationRefCount = 0;
-    private float mDownX;
+    private float mDownY;
     private boolean mSwiping;
     private boolean mItemPressed;
     private VelocityTracker mVelocityTracker;
@@ -108,7 +108,7 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
      * @param callbacks The callback to trigger when the user has indicated that she would like to
      *                  dismiss one or more list items.
      */
-    public SwipeDismissListViewTouchListener(ListView listView, DismissCallbacks callbacks) {
+    public SwipeDismissTwoWayViewTouchListener(TwoWayView listView, DismissCallbacks callbacks) {
         ViewConfiguration vc = ViewConfiguration.get(listView.getContext());
         mSlop = vc.getScaledTouchSlop();
         mMinFlingVelocity = vc.getScaledMinimumFlingVelocity() * 16;
@@ -124,6 +124,7 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
      *
      * @param enabled Whether or not to watch for gestures.
      */
+    @Override
     public void setEnabled(boolean enabled) {
         mPaused = !enabled;
     }
@@ -132,28 +133,29 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
      * Returns an {@link AbsListView.OnScrollListener} to be added to the {@link
      * ListView} using {@link ListView#setOnScrollListener(AbsListView.OnScrollListener)}.
      * If a scroll listener is already assigned, the caller should still pass scroll changes through
-     * to this listener. This will ensure that this {@link SwipeDismissListViewTouchListener} is
+     * to this listener. This will ensure that this {@link SwipeDismissTwoWayViewTouchListener} is
      * paused during list view scrolling.</p>
      *
-     * @see SwipeDismissListViewTouchListener
+     * @see SwipeDismissTwoWayViewTouchListener
      */
     public SwipeDismissAdapterViewTouchListener.OnScrollListener makeScrollListener() {
         return new SwipeDismissAdapterViewTouchListener.OnScrollListener() {
             @Override
-            public void onScrollStateChanged(AbsListView absListView, int scrollState) {
+            public void onScrollStateChanged(TwoWayView twoWayView, int scrollState) {
                 setEnabled(scrollState != AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL);
             }
 
             @Override
-            public void onScroll(AbsListView absListView, int i, int i1, int i2) {
+            public void onScroll(TwoWayView twoWayView, int i, int i1, int i2) {
             }
 
             @Override
-            public void onScroll(TwoWayView arg0, int arg1, int arg2, int arg3) {
+            public void onScroll(AbsListView view, int firstVisibleItem,
+                    int visibleItemCount, int totalItemCount) {
             }
 
             @Override
-            public void onScrollStateChanged(TwoWayView arg0, int arg1) {
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
             }
         };
     }
@@ -191,17 +193,17 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
 
                 if (mDownView != null) {
 
-                    mDownX = motionEvent.getRawX();
+                    mDownY = motionEvent.getRawY();
                     mDownPosition = mListView.getPositionForView(mDownView);
                     if (mCallbacks.canDismiss(mDownPosition,(Card) mListView.getAdapter().getItem(mDownPosition))) {
                         mVelocityTracker = VelocityTracker.obtain();
                         mVelocityTracker.addMovement(motionEvent);
+                        mItemPressed = true;
                     } else {
                         mDownView = null;
                     }
                 }
-                view.onTouchEvent(motionEvent);
-                return true;
+                break;
             }
 
             case MotionEvent.ACTION_UP: {
@@ -209,22 +211,22 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
                     break;
                 }
 
-                float deltaX = motionEvent.getRawX() - mDownX;
+                float deltaY = motionEvent.getRawY() - mDownY;
                 mVelocityTracker.addMovement(motionEvent);
                 mVelocityTracker.computeCurrentVelocity(1000);
-                float velocityX = mVelocityTracker.getXVelocity();
-                float absVelocityX = Math.abs(velocityX);
-                float absVelocityY = Math.abs(mVelocityTracker.getYVelocity());
+                float velocityY = mVelocityTracker.getYVelocity();
+                float absVelocityY = Math.abs(velocityY);
+                float absVelocityX = Math.abs(mVelocityTracker.getXVelocity());
                 boolean dismiss = false;
                 boolean dismissRight = false;
-                if (Math.abs(deltaX) > mViewWidth / 2) {
+                if (Math.abs(deltaY) > mViewWidth / 2) {
                     dismiss = true;
-                    dismissRight = deltaX > 0;
-                } else if (mMinFlingVelocity <= absVelocityX && absVelocityX <= mMaxFlingVelocity
-                        && absVelocityY < absVelocityX) {
+                    dismissRight = deltaY > 0;
+                } else if (mMinFlingVelocity <= absVelocityY && absVelocityY <= mMaxFlingVelocity
+                        && absVelocityX < absVelocityY) {
                     // dismiss only if flinging in the same direction as dragging
-                    dismiss = (velocityX < 0) == (deltaX < 0);
-                    dismissRight = mVelocityTracker.getXVelocity() > 0;
+                    dismiss = (velocityY < 0) == (deltaY < 0);
+                    dismissRight = mVelocityTracker.getYVelocity() > 0;
                 }
                 if (dismiss) {
                     // dismiss
@@ -232,7 +234,7 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
                     final int downPosition = mDownPosition;
                     ++mDismissAnimationRefCount;
                     mDownView.animate()
-                            .translationX(dismissRight ? mViewWidth : -mViewWidth)
+                            .translationY(dismissRight ? mViewWidth : -mViewWidth)
                             .alpha(0)
                             .setDuration(mAnimationTime)
                             .setListener(new AnimatorListenerAdapter() {
@@ -244,14 +246,14 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
                 } else {
                     // cancel
                     mDownView.animate()
-                            .translationX(0)
+                            .translationY(0)
                             .alpha(1)
                             .setDuration(mAnimationTime)
                             .setListener(null);
                 }
                 mVelocityTracker.recycle();
                 mVelocityTracker = null;
-                mDownX = 0;
+                mDownY = 0;
                 mDownView = null;
                 mDownPosition = ListView.INVALID_POSITION;
 
@@ -275,8 +277,8 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
                 }
 
                 mVelocityTracker.addMovement(motionEvent);
-                float deltaX = motionEvent.getRawX() - mDownX;
-                if (!mSwiping && Math.abs(deltaX) > mSlop) {
+                float deltaY = motionEvent.getRawY() - mDownY;
+                if (!mSwiping && (Math.abs(deltaY) > mSlop)) {
                     mSwiping = true;
                 }
 
@@ -288,9 +290,9 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
                         mItemPressed = false;
                     }
 
-                    mDownView.setTranslationX(deltaX);
+                    mDownView.setTranslationY(deltaY);
                     mDownView.setAlpha(Math.max(0f, Math.min(1f,
-                            1f - 2f * Math.abs(deltaX) / mViewWidth)));
+                            1f - 2f * Math.abs(deltaY) / mViewWidth)));
                     return true;
                 }
                 break;
@@ -325,14 +327,14 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
     }
 
     private void performDismiss(final View dismissView, final int dismissPosition) {
-        // Animate the dismissed list item to zero-height and fire the dismiss callback when
+        // Animate the dismissed list item to zero-width and fire the dismiss callback when
         // all dismissed list item animations have completed. This triggers layout on each animation
         // frame; in the future we may want to do something smarter and more performant.
 
         final ViewGroup.LayoutParams lp = dismissView.getLayoutParams();
-        final int originalHeight = dismissView.getHeight();
+        final int originalWidth = dismissView.getWidth();
 
-        ValueAnimator animator = ValueAnimator.ofInt(originalHeight, 1).setDuration(mAnimationTime);
+        ValueAnimator animator = ValueAnimator.ofInt(originalWidth, 1).setDuration(mAnimationTime);
 
         animator.addListener(new AnimatorListenerAdapter() {
             @Override
@@ -353,9 +355,9 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
                     for (PendingDismissData pendingDismiss : mPendingDismisses) {
                         // Reset view presentation
                         pendingDismiss.view.setAlpha(1f);
-                        pendingDismiss.view.setTranslationX(0);
+                        pendingDismiss.view.setTranslationY(0);
                         lp = pendingDismiss.view.getLayoutParams();
-                        lp.height = originalHeight;
+                        lp.width = originalWidth;
                         pendingDismiss.view.setLayoutParams(lp);
                     }
 
@@ -367,7 +369,7 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                lp.height = (Integer) valueAnimator.getAnimatedValue();
+                lp.width = (Integer) valueAnimator.getAnimatedValue();
                 dismissView.setLayoutParams(lp);
             }
         });

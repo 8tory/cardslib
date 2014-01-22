@@ -26,8 +26,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.ListView;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +37,9 @@ import org.lucasr.twowayview.TwoWayView;
 import it.gmariotti.cardslib.library.R;
 import it.gmariotti.cardslib.library.internal.base.BaseCardArrayAdapter;
 import it.gmariotti.cardslib.library.view.CardView;
+import it.gmariotti.cardslib.library.view.listener.SwipeDismissAdapterViewTouchListener;
 import it.gmariotti.cardslib.library.view.listener.SwipeDismissListViewTouchListener;
+import it.gmariotti.cardslib.library.view.listener.SwipeDismissTwoWayViewTouchListener;
 import it.gmariotti.cardslib.library.view.listener.UndoBarController;
 import it.gmariotti.cardslib.library.view.listener.UndoCard;
 
@@ -80,14 +82,14 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
     /**
      * {@link AdapterView}
      */
-    protected AdapterView mParentView;
+    protected AdapterView<?> mParentView;
 
     protected CardView.OnExpandListAnimatorListener mExpandListAnimatorListener;
 
     /**
      * Listener invoked when a card is swiped
      */
-    protected SwipeDismissListViewTouchListener mOnTouchListener;
+    protected SwipeDismissAdapterViewTouchListener mOnTouchListener;
 
     /**
      * Used to enable an undo message after a swipe action
@@ -192,13 +194,15 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
 
         if (card.isSwipeable()){
             if (mOnTouchListener == null){
-                mOnTouchListener = new SwipeDismissListViewTouchListener(mParentView, mCallback);
                 // Setting this scroll listener is required to ensure that during
                 // ListView scrolling, we don't look for swipes.
-                if (mParentView instanceof AbsListView)
-                    ((AbsListView)mParentView).setOnScrollListener(mOnTouchListener.makeScrollListener());
-                else if (mParentView instanceof TwoWayView)
+                if (mParentView instanceof ListView) {
+                    mOnTouchListener = new SwipeDismissListViewTouchListener((ListView)mParentView, mCallback);
+                    ((ListView)mParentView).setOnScrollListener(mOnTouchListener.makeScrollListener());
+                } else if (mParentView instanceof TwoWayView) {
+                    mOnTouchListener = new SwipeDismissTwoWayViewTouchListener((TwoWayView)mParentView, mCallback);
                     ((TwoWayView)mParentView).setOnScrollListener(mOnTouchListener.makeScrollListener());
+                }
             }
 
             cardView.setOnTouchListener(mOnTouchListener);
@@ -226,7 +230,7 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
     /**
      * Listener invoked when a card is swiped
      */
-    SwipeDismissListViewTouchListener.DismissCallbacks mCallback = new SwipeDismissListViewTouchListener.DismissCallbacks() {
+    SwipeDismissListViewTouchListener.DismissCallbacks mCallback = new SwipeDismissAdapterViewTouchListener.DismissCallbacks() {
 
         @Override
         public boolean canDismiss(int position, Card card) {
@@ -319,7 +323,7 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
     /**
      * @return {@link AdapterView}
      */
-    public AdapterView getParentView() {
+    public AdapterView<?> getParentView() {
         return mParentView;
     }
 
@@ -328,7 +332,7 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
      *
      * @param AdapterView view
      */
-    public void setParentView(AdapterView parent) {
+    public void setParentView(AdapterView<?> parent) {
         this.mParentView = parent;
     }
 
