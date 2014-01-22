@@ -97,8 +97,10 @@ public class UndoBarController {
         mButtonView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (mUndoListener != null) {
+                    mUndoListener.onUndo(mUndoToken);
+                }
                 hideUndoBar(false);
-                mUndoListener.onUndo(mUndoToken);
             }
         });
 
