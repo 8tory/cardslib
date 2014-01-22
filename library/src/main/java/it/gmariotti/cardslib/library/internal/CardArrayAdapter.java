@@ -385,4 +385,10 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
     public UndoBarController getUndoBarController() {
         return mUndoBarController;
     }
+
+    @Override
+    public void clear() {
+        super.clear();
+        mUndoBarController.hideUndoBar(false);
+    }
 }
