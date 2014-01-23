@@ -282,7 +282,7 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
     // -------------------------------------------------------------
 
     @Override
-    public void onUndo(Parcelable token) {
+    public void onUndo(Parcelable token, boolean timeout) {
         //Restore items in lists (use reverseSortedOrder)
         if (token != null) {
 
@@ -302,10 +302,12 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
                     }else{
                         Card card = mInternalObjects.get(id);
                         if (card!=null){
-                            insert(card, itemPosition);
-                            notifyDataSetChanged();
+                            if (!timeout) {
+                                insert(card, itemPosition);
+                                notifyDataSetChanged();
+                            }
                             if (card.getOnUndoSwipeListListener()!=null)
-                                card.getOnUndoSwipeListListener().onUndoSwipe(card);
+                                card.getOnUndoSwipeListListener().onUndoSwipe(card, timeout);
                         }
                     }
                 }

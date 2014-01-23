@@ -58,7 +58,7 @@ public class UndoBarController {
         /*
          *  Called when you undo the action
          */
-        void onUndo(Parcelable undoToken);
+        void onUndo(Parcelable undoToken, boolean timeout);
     }
 
     private UndoBarController(View undoBarView) {
@@ -85,6 +85,10 @@ public class UndoBarController {
     public void showUndoBar(boolean immediate, CharSequence message, Parcelable undoToken,
             UndoListener undoListener) {
 
+        if (mUndoListener != null) {
+            mUndoListener.onUndo(mUndoToken, true);
+        }
+
         mUndoToken = undoToken;
         mUndoMessage = message;
         mMessageView.setText(mUndoMessage);
@@ -98,7 +102,7 @@ public class UndoBarController {
             @Override
             public void onClick(View view) {
                 if (mUndoListener != null) {
-                    mUndoListener.onUndo(mUndoToken);
+                    mUndoListener.onUndo(mUndoToken, false);
                 }
                 hideUndoBar(false);
             }
@@ -147,6 +151,9 @@ public class UndoBarController {
     private Runnable mHideRunnable = new Runnable() {
         @Override
         public void run() {
+            if (mUndoListener != null) {
+                mUndoListener.onUndo(mUndoToken, true);
+            }
             hideUndoBar(false);
         }
     };
