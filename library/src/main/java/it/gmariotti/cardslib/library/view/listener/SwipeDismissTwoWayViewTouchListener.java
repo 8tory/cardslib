@@ -88,7 +88,7 @@ public class SwipeDismissTwoWayViewTouchListener implements SwipeDismissAdapterV
     // Fixed properties
     private TwoWayView mListView;
     private DismissCallbacks mCallbacks;
-    private int mViewWidth = 1; // 1 and not 0 to prevent dividing by zero
+    private int mViewHeight = 1; // 1 and not 0 to prevent dividing by zero
 
     // Transient properties
     private List<PendingDismissData> mPendingDismisses = new ArrayList<PendingDismissData>();
@@ -162,8 +162,8 @@ public class SwipeDismissTwoWayViewTouchListener implements SwipeDismissAdapterV
 
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
-        if (mViewWidth < 2) {
-            mViewWidth = mListView.getWidth();
+        if (mViewHeight < 2) {
+            mViewHeight = mListView.getHeight();
         }
 
         switch (motionEvent.getActionMasked()) {
@@ -218,15 +218,15 @@ public class SwipeDismissTwoWayViewTouchListener implements SwipeDismissAdapterV
                 float absVelocityY = Math.abs(velocityY);
                 float absVelocityX = Math.abs(mVelocityTracker.getXVelocity());
                 boolean dismiss = false;
-                boolean dismissRight = false;
-                if (Math.abs(deltaY) > mViewWidth / 2) {
+                boolean dismissBottom = false;
+                if (Math.abs(deltaY) > mViewHeight / 2) {
                     dismiss = true;
-                    dismissRight = deltaY > 0;
+                    dismissBottom = deltaY > 0;
                 } else if (mMinFlingVelocity <= absVelocityY && absVelocityY <= mMaxFlingVelocity
                         && absVelocityX < absVelocityY) {
                     // dismiss only if flinging in the same direction as dragging
                     dismiss = (velocityY < 0) == (deltaY < 0);
-                    dismissRight = mVelocityTracker.getYVelocity() > 0;
+                    dismissBottom = mVelocityTracker.getYVelocity() > 0;
                 }
                 if (dismiss) {
                     // dismiss
@@ -234,7 +234,7 @@ public class SwipeDismissTwoWayViewTouchListener implements SwipeDismissAdapterV
                     final int downPosition = mDownPosition;
                     ++mDismissAnimationRefCount;
                     mDownView.animate()
-                            .translationY(dismissRight ? mViewWidth : -mViewWidth)
+                            .translationY(dismissBottom ? mViewHeight : -mViewHeight)
                             .alpha(0)
                             .setDuration(mAnimationTime)
                             .setListener(new AnimatorListenerAdapter() {
@@ -292,7 +292,7 @@ public class SwipeDismissTwoWayViewTouchListener implements SwipeDismissAdapterV
 
                     mDownView.setTranslationY(deltaY);
                     mDownView.setAlpha(Math.max(0f, Math.min(1f,
-                            1f - 2f * Math.abs(deltaY) / mViewWidth)));
+                            1f - 2f * Math.abs(deltaY) / mViewHeight)));
                     return true;
                 }
                 break;
