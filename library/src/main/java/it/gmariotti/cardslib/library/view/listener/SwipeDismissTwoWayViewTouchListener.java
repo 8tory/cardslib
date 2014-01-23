@@ -175,20 +175,9 @@ public class SwipeDismissTwoWayViewTouchListener implements SwipeDismissAdapterV
                 // TODO: ensure this is a finger, and set a flag
 
                 // Find the child view that was touched (perform a hit test)
-                Rect rect = new Rect();
-                int childCount = mListView.getChildCount();
-                int[] listViewCoords = new int[2];
-                mListView.getLocationOnScreen(listViewCoords);
-                int x = (int) motionEvent.getRawX() - listViewCoords[0];
-                int y = (int) motionEvent.getRawY() - listViewCoords[1];
-                View child=null;
-                for (int i = 0; i < childCount; i++) {
-                    child = mListView.getChildAt(i);
-                    child.getHitRect(rect);
-                    if (rect.contains(x, y)) {
-                        mDownView = child;
-                        break;
-                    }
+                int index = mListView.indexOfChild(view);
+                if (index != -1) {
+                    mDownView = view;
                 }
 
                 if (mDownView != null) {
