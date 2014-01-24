@@ -40,6 +40,7 @@ import it.gmariotti.cardslib.library.internal.CardHeader;
 import it.gmariotti.cardslib.library.internal.CardThumbnail;
 import it.gmariotti.cardslib.library.view.component.CardHeaderView;
 import it.gmariotti.cardslib.library.view.component.CardThumbnailView;
+import it.gmariotti.cardslib.library.view.listener.SwipeDismissAdapterViewTouchListener;
 import it.gmariotti.cardslib.library.view.listener.SwipeDismissViewTouchListener;
 
 /**
@@ -100,6 +101,8 @@ public class CardView extends BaseCardView {
     //--------------------------------------------------------------------------
     //
     //--------------------------------------------------------------------------
+
+    private OnTouchListener mOnTouchListener;
 
     /**
      * {@link CardHeader} model
@@ -872,7 +875,22 @@ public class CardView extends BaseCardView {
         }
     }
 
+    @Override
+    public void setOnTouchListener(OnTouchListener l) {
+        super.setOnTouchListener(l);
+        mOnTouchListener = l;
+    }
 
+    public void swipe() {
+        if (!mCard.isSwipeable()) {
+            return;
+        }
+
+        if ((mOnTouchListener != null) &&
+                (mOnTouchListener instanceof SwipeDismissAdapterViewTouchListener)) {
+            ((SwipeDismissAdapterViewTouchListener) mOnTouchListener).swipe(this);
+        }
+    }
 
 
 }

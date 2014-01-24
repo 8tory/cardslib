@@ -109,6 +109,8 @@ public interface SwipeDismissAdapterViewTouchListener extends View.OnTouchListen
      */
     public OnScrollListener makeScrollListener();
 
+    public void swipe(View dismissView);
+
     public static class PendingDismissData implements Comparable<PendingDismissData> {
         public int position;
         public View view;

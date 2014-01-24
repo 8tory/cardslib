@@ -229,19 +229,7 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
                 }
                 if (dismiss) {
                     // dismiss
-                    final View downView = mDownView; // mDownView gets null'd before animation ends
-                    final int downPosition = mDownPosition;
-                    ++mDismissAnimationRefCount;
-                    mDownView.animate()
-                            .translationX(dismissRight ? mViewWidth : -mViewWidth)
-                            .alpha(0)
-                            .setDuration(mAnimationTime)
-                            .setListener(new AnimatorListenerAdapter() {
-                                @Override
-                                public void onAnimationEnd(Animator animation) {
-                                    performDismiss(downView, downPosition);
-                                }
-                            });
+                    swipe(mDownView, mDownPosition, dismissRight);
                 } else {
                     // cancel
                     mDownView.animate()
@@ -323,6 +311,36 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
             // Sort by descending position
             return other.position - position;
         }
+    }
+
+    @Override
+    public void swipe(View dismissView) {
+        if (mViewWidth < 2) {
+            mViewWidth = mListView.getHeight();
+        }
+
+        int dismissPosition = mListView.getPositionForView(dismissView);
+        if (dismissPosition == -1) {
+            return;
+        }
+
+        if (!mCallbacks.canDismiss(dismissPosition, (Card) mListView.getAdapter()
+                .getItem(mDownPosition))) {
+            return;
+        }
+
+        swipe(dismissView, dismissPosition, false);
+    }
+
+    private void swipe(final View dismissView, final int dismissPosition, boolean dismissRight) {
+        ++mDismissAnimationRefCount;
+        dismissView.animate().translationX(dismissRight ? mViewWidth : -mViewWidth)
+                .alpha(0).setDuration(mAnimationTime).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                performDismiss(dismissView, dismissPosition);
+            }
+        });
     }
 
     private void performDismiss(final View dismissView, final int dismissPosition) {

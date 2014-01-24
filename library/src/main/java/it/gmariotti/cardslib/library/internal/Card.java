@@ -824,5 +824,13 @@ public class Card extends BaseCard {
         }
     }
 
+    public void swipe() {
+        if (!isSwipeable()) {
+            return;
+        }
 
+        if (mCardView != null) {
+            mCardView.swipe();
+        }
+    }
 }

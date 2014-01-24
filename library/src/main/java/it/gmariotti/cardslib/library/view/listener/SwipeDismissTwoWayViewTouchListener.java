@@ -19,7 +19,6 @@ package it.gmariotti.cardslib.library.view.listener;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
-import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -219,19 +218,7 @@ public class SwipeDismissTwoWayViewTouchListener implements SwipeDismissAdapterV
                 }
                 if (dismiss) {
                     // dismiss
-                    final View downView = mDownView; // mDownView gets null'd before animation ends
-                    final int downPosition = mDownPosition;
-                    ++mDismissAnimationRefCount;
-                    mDownView.animate()
-                            .translationY(dismissBottom ? mViewHeight : -mViewHeight)
-                            .alpha(0)
-                            .setDuration(mAnimationTime)
-                            .setListener(new AnimatorListenerAdapter() {
-                                @Override
-                                public void onAnimationEnd(Animator animation) {
-                                    performDismiss(downView, downPosition);
-                                }
-                            });
+                    swipe(mDownView, mDownPosition, dismissBottom);
                 } else {
                     // cancel
                     mDownView.animate()
@@ -313,6 +300,36 @@ public class SwipeDismissTwoWayViewTouchListener implements SwipeDismissAdapterV
             // Sort by descending position
             return other.position - position;
         }
+    }
+
+    @Override
+    public void swipe(View dismissView) {
+        if (mViewHeight < 2) {
+            mViewHeight = mListView.getHeight();
+        }
+
+        int dismissPosition = mListView.getPositionForView(dismissView);
+        if (dismissPosition == -1) {
+            return;
+        }
+
+        if (!mCallbacks.canDismiss(dismissPosition, (Card) mListView.getAdapter()
+                .getItem(mDownPosition))) {
+            return;
+        }
+
+        swipe(dismissView, dismissPosition, false);
+    }
+
+    private void swipe(final View dismissView, final int dismissPosition, boolean dismissBottom) {
+        ++mDismissAnimationRefCount;
+        dismissView.animate().translationY(dismissBottom ? mViewHeight : -mViewHeight)
+                .alpha(0).setDuration(mAnimationTime).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                performDismiss(dismissView, dismissPosition);
+            }
+        });
     }
 
     private void performDismiss(final View dismissView, final int dismissPosition) {
