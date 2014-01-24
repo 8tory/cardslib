@@ -196,6 +196,7 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
                     if (mCallbacks.canDismiss(mDownPosition,(Card) mListView.getAdapter().getItem(mDownPosition))) {
                         mVelocityTracker = VelocityTracker.obtain();
                         mVelocityTracker.addMovement(motionEvent);
+                        mItemPressed = true;
                     } else {
                         mDownView = null;
                     }
