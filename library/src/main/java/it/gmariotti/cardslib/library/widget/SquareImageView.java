@@ -48,15 +48,13 @@ public class SquareImageView extends ImageView {
     protected void onDraw(Canvas canvas) {
         Drawable drawable = getDrawable();
 
-        if ((mDrawableOld != drawable) && drawable instanceof BitmapDrawable &&
-                (((BitmapDrawable)drawable).getBitmap() != null)) {
-            mDrawableOld = drawable;
-
+        if (!(mDrawableOld instanceof BitmapDrawable) && drawable instanceof BitmapDrawable) {
             AlphaAnimation animation = new AlphaAnimation(0, 1);
             animation.setDuration(800);
             this.startAnimation(animation);
         } else {
             super.onDraw(canvas);
         }
+        mDrawableOld = drawable;
     }
 }
