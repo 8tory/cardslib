@@ -325,7 +325,7 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
         }
 
         if (!mCallbacks.canDismiss(dismissPosition, (Card) mListView.getAdapter()
-                .getItem(mDownPosition))) {
+                .getItem(dismissPosition))) {
             return;
         }
 

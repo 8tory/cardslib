@@ -314,7 +314,7 @@ public class SwipeDismissTwoWayViewTouchListener implements SwipeDismissAdapterV
         }
 
         if (!mCallbacks.canDismiss(dismissPosition, (Card) mListView.getAdapter()
-                .getItem(mDownPosition))) {
+                .getItem(dismissPosition))) {
             return;
         }
 
