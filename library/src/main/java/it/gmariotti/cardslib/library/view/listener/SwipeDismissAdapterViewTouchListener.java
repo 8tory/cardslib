@@ -98,17 +98,6 @@ public interface SwipeDismissAdapterViewTouchListener extends View.OnTouchListen
      */
     public void setEnabled(boolean enabled);
 
-    /**
-     * Returns an {@link AbsListView.OnScrollListener} to be added to the {@link
-     * ListView} using {@link ListView#setOnScrollListener(AbsListView.OnScrollListener)}.
-     * If a scroll listener is already assigned, the caller should still pass scroll changes through
-     * to this listener. This will ensure that this {@link SwipeDismissListViewTouchListener} is
-     * paused during list view scrolling.</p>
-     *
-     * @see SwipeDismissListViewTouchListener
-     */
-    public OnScrollListener makeScrollListener();
-
     public void swipe(View dismissView);
 
     public static class PendingDismissData implements Comparable<PendingDismissData> {

@@ -26,6 +26,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
@@ -182,7 +183,52 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
         return view;
     }
 
+    protected AbsListView.OnScrollListener mExternalOnScrollListener =
+            new AbsListView.OnScrollListener() {
+        @Override
+        public void onScroll(AbsListView view, int firstVisibleItem,
+                int visibleItemCount, int totalItemCount) {
+        }
 
+        @Override
+        public void onScrollStateChanged(AbsListView view, int scrollState) {
+        }
+    };
+
+    protected SwipeDismissAdapterViewTouchListener.OnScrollListener mOnScrollListener =
+            new SwipeDismissAdapterViewTouchListener.OnScrollListener() {
+        @Override
+        public void onScrollStateChanged(TwoWayView twoWayView, int scrollState) {
+            mOnTouchListener.setEnabled(scrollState != AbsListView.OnScrollListener
+                    .SCROLL_STATE_TOUCH_SCROLL);
+            mExternalOnScrollListener.onScrollStateChanged(null, scrollState);
+        }
+
+        @Override
+        public void onScroll(TwoWayView twoWayView, int i, int i1, int i2) {
+            mExternalOnScrollListener.onScroll(null, i, i1, i2);
+        }
+
+        @Override
+        public void onScroll(AbsListView view, int firstVisibleItem,
+                int visibleItemCount, int totalItemCount) {
+            mExternalOnScrollListener.onScroll(view, firstVisibleItem, visibleItemCount,
+                    totalItemCount);
+        }
+
+        @Override
+        public void onScrollStateChanged(AbsListView view, int scrollState) {
+            mOnTouchListener.setEnabled(scrollState != AbsListView.OnScrollListener
+                    .SCROLL_STATE_TOUCH_SCROLL);
+            mExternalOnScrollListener.onScrollStateChanged(view, scrollState);
+        }
+    };
+
+    public void setOnScrollListener(AbsListView.OnScrollListener listener) {
+        if (listener != null) {
+            mExternalOnScrollListener = listener;
+        }
+    }
 
     /**
      * Sets SwipeAnimation on List
@@ -198,10 +244,10 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
                 // ListView scrolling, we don't look for swipes.
                 if (mParentView instanceof ListView) {
                     mOnTouchListener = new SwipeDismissListViewTouchListener((ListView)mParentView, mCallback);
-                    ((ListView)mParentView).setOnScrollListener(mOnTouchListener.makeScrollListener());
+                    ((ListView)mParentView).setOnScrollListener(mOnScrollListener);
                 } else if (mParentView instanceof TwoWayView) {
                     mOnTouchListener = new SwipeDismissTwoWayViewTouchListener((TwoWayView)mParentView, mCallback);
-                    ((TwoWayView)mParentView).setOnScrollListener(mOnTouchListener.makeScrollListener());
+                    ((TwoWayView)mParentView).setOnScrollListener(mOnScrollListener);
                 }
             }
 

@@ -128,36 +128,6 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
         mPaused = !enabled;
     }
 
-    /**
-     * Returns an {@link AbsListView.OnScrollListener} to be added to the {@link
-     * ListView} using {@link ListView#setOnScrollListener(AbsListView.OnScrollListener)}.
-     * If a scroll listener is already assigned, the caller should still pass scroll changes through
-     * to this listener. This will ensure that this {@link SwipeDismissListViewTouchListener} is
-     * paused during list view scrolling.</p>
-     *
-     * @see SwipeDismissListViewTouchListener
-     */
-    public SwipeDismissAdapterViewTouchListener.OnScrollListener makeScrollListener() {
-        return new SwipeDismissAdapterViewTouchListener.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(AbsListView absListView, int scrollState) {
-                setEnabled(scrollState != AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL);
-            }
-
-            @Override
-            public void onScroll(AbsListView absListView, int i, int i1, int i2) {
-            }
-
-            @Override
-            public void onScroll(TwoWayView arg0, int arg1, int arg2, int arg3) {
-            }
-
-            @Override
-            public void onScrollStateChanged(TwoWayView arg0, int arg1) {
-            }
-        };
-    }
-
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
         if (mViewWidth < 2) {
