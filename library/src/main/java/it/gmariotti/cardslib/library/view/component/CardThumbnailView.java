@@ -213,17 +213,14 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
         if (mInternalOuterView!=null)
             mCardThumbnail.setupInnerViewElements((ViewGroup)mInternalOuterView,mImageView);
 
-        if ((mImageView.getMeasuredHeight() == 0) || (mImageView.getMeasuredWidth() == 0)) {
-            mImageView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-                @Override
-                public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                    loadBitmap();
-                    v.removeOnLayoutChangeListener(this);
-                }
-            });
-        } else {
-            loadBitmap();
-        }
+        mImageView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                loadBitmap();
+                v.removeOnLayoutChangeListener(this);
+            }
+        });
+        mImageView.requestLayout();
     }
 
     private void loadBitmap() {
