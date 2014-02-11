@@ -199,8 +199,10 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
             new SwipeDismissAdapterViewTouchListener.OnScrollListener() {
         @Override
         public void onScrollStateChanged(TwoWayView twoWayView, int scrollState) {
-            mOnTouchListener.setEnabled(scrollState != AbsListView.OnScrollListener
-                    .SCROLL_STATE_TOUCH_SCROLL);
+            if (mOnTouchListener != null) {
+                mOnTouchListener.setEnabled(scrollState != AbsListView.OnScrollListener
+                        .SCROLL_STATE_TOUCH_SCROLL);
+            }
             mExternalOnScrollListener.onScrollStateChanged(null, scrollState);
         }
 
@@ -218,8 +220,10 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
 
         @Override
         public void onScrollStateChanged(AbsListView view, int scrollState) {
-            mOnTouchListener.setEnabled(scrollState != AbsListView.OnScrollListener
-                    .SCROLL_STATE_TOUCH_SCROLL);
+            if (mOnTouchListener != null) {
+                mOnTouchListener.setEnabled(scrollState != AbsListView.OnScrollListener
+                        .SCROLL_STATE_TOUCH_SCROLL);
+            }
             mExternalOnScrollListener.onScrollStateChanged(view, scrollState);
         }
     };
@@ -244,10 +248,8 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
                 // ListView scrolling, we don't look for swipes.
                 if (mParentView instanceof ListView) {
                     mOnTouchListener = new SwipeDismissListViewTouchListener((ListView)mParentView, mCallback);
-                    ((ListView)mParentView).setOnScrollListener(mOnScrollListener);
                 } else if (mParentView instanceof TwoWayView) {
                     mOnTouchListener = new SwipeDismissTwoWayViewTouchListener((TwoWayView)mParentView, mCallback);
-                    ((TwoWayView)mParentView).setOnScrollListener(mOnScrollListener);
                 }
             }
 
@@ -379,6 +381,12 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
      */
     public void setParentView(AdapterView<?> parent) {
         this.mParentView = parent;
+
+        if (mParentView instanceof ListView) {
+            ((ListView)mParentView).setOnScrollListener(mOnScrollListener);
+        } else if (mParentView instanceof TwoWayView) {
+            ((TwoWayView)mParentView).setOnScrollListener(mOnScrollListener);
+        }
     }
 
     /**
