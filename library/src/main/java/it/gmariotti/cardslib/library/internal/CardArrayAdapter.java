@@ -297,6 +297,7 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
                 Card card = getItem(position);
                 itemPositions[i]=position;
                 itemIds[i]=card.getId();
+                mInternalObjects.put(itemIds[i], card);
                 i++;
 
                 remove(card);
@@ -416,10 +417,6 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
         mEnableUndo = enableUndo;
         if (enableUndo) {
             mInternalObjects = new HashMap<String, Card>();
-            for (int i=0;i<getCount();i++) {
-                Card card = getItem(i);
-                mInternalObjects.put(card.getId(), card);
-            }
 
             //Create a UndoController
             if (mUndoBarController==null){
