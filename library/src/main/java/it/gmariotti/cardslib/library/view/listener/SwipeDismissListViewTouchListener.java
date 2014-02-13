@@ -160,8 +160,7 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
                         mDownView = null;
                     }
                 }
-                view.onTouchEvent(motionEvent);
-                return true;
+                break;
             }
 
             case MotionEvent.ACTION_UP: {
@@ -200,7 +199,6 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
                 mVelocityTracker.recycle();
                 mVelocityTracker = null;
                 mDownX = 0;
-                mDownView = null;
                 mDownPosition = ListView.INVALID_POSITION;
 
                 if (mSwiping) {
@@ -213,6 +211,7 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
                     mSwiping = false;
                     return true;
                 }
+                mDownView = null;
 
                 break;
             }
@@ -253,6 +252,7 @@ public class SwipeDismissListViewTouchListener implements SwipeDismissAdapterVie
         cancelEvent.setAction(MotionEvent.ACTION_CANCEL | (motionEvent
                     .getActionIndex() << MotionEvent.ACTION_POINTER_INDEX_SHIFT));
         mListView.onTouchEvent(cancelEvent);
+        mDownView.cancelLongPress();
         cancelEvent.recycle();
     }
 

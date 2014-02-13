@@ -199,7 +199,6 @@ public class SwipeDismissTwoWayViewTouchListener implements SwipeDismissAdapterV
                 mVelocityTracker.recycle();
                 mVelocityTracker = null;
                 mDownY = 0;
-                mDownView = null;
                 mDownPosition = ListView.INVALID_POSITION;
 
                 if (mSwiping) {
@@ -212,6 +211,7 @@ public class SwipeDismissTwoWayViewTouchListener implements SwipeDismissAdapterV
                     mSwiping = false;
                     return true;
                 }
+                mDownView = null;
 
                 break;
             }
@@ -253,6 +253,8 @@ public class SwipeDismissTwoWayViewTouchListener implements SwipeDismissAdapterV
                     .getActionIndex() << MotionEvent.ACTION_POINTER_INDEX_SHIFT));
         mListView.onTouchEvent(cancelEvent);
         cancelEvent.recycle();
+
+        mDownView.cancelLongPress();
     }
 
     class PendingDismissData implements Comparable<PendingDismissData> {
