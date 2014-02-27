@@ -23,9 +23,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Handler;
+import android.provider.MediaStore.Images.ImageColumns;
 import android.util.AttributeSet;
 import android.util.LruCache;
 import android.view.LayoutInflater;
@@ -33,6 +36,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
 
 import java.io.File;
 
@@ -251,6 +255,28 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
     }
 
     public void loadBitmap(String uri, ImageView imageView) {
+        final ContentResolver resolver = getContext().getContentResolver();
+        final String[] PROJECTION = {
+                ImageColumns.ORIENTATION
+        };
+        final Cursor cursor = resolver.query(Uri.parse(uri), PROJECTION, null, null, null);
+        if (cursor != null) {
+            try {
+                if (cursor.moveToFirst()) {
+                    int orientation = cursor.getInt(0);
+                    orientation = (orientation + 360) % 360;
+                    final Matrix matrix = new Matrix();
+                    imageView.setScaleType(ScaleType.MATRIX);
+                    matrix.postRotate(orientation, imageView.getWidth() / 2,
+                            imageView.getHeight() / 2);
+                    imageView.setImageMatrix(matrix);
+                }
+            } catch (Exception e) {
+            } finally {
+                cursor.close();
+            }
+        }
+
         // Disable ProgressBar
         if (true) {
             ImageLoader.getInstance().displayImage(uri, imageView);
