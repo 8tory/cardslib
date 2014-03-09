@@ -26,6 +26,7 @@ import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.provider.MediaStore.Images.ImageColumns;
@@ -40,7 +41,9 @@ import android.widget.ImageView.ScaleType;
 
 import java.io.File;
 
+import com.nostra13.universalimageloader.cache.memory.MemoryCacheAware;
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.ImageSize;
 import com.nostra13.universalimageloader.core.assist.SimpleImageLoadingListener;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 
@@ -229,6 +232,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
 
     private void loadBitmap() {
         if (!mCardThumbnail.isExternalUsage()){
+            mImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             if(mCardThumbnail.getDrawableResource()>0)
                 loadBitmap(mCardThumbnail.getDrawableResource(), mImageView);
             else if (mCardThumbnail.getUrlResource() != null)
@@ -255,11 +259,41 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
     }
 
     public void loadBitmap(String uri, ImageView imageView) {
+        if (mCardThumbnail.getBitmapResource() != null) {
+            final String URI_AND_SIZE_SEPARATOR = "_";
+            final String WIDTH_AND_HEIGHT_SEPARATOR = "x";
+            final ImageSize targetSize = new ImageSize(imageView.getWidth(), imageView.getHeight());
+            final String memoryCacheKey = new StringBuilder(uri).append(URI_AND_SIZE_SEPARATOR)
+                    .append(targetSize.getWidth()).append(WIDTH_AND_HEIGHT_SEPARATOR)
+                    .append(targetSize.getHeight()).toString();
+
+            final MemoryCacheAware<String, Bitmap> memoryCache = ImageLoader.getInstance()
+                    .getMemoryCache();
+
+            if (memoryCache.get(memoryCacheKey) == null) {
+                ImageLoader.getInstance().displayImage(uri, imageView);
+
+                imageView.setImageBitmap(mCardThumbnail.getBitmapResource());
+                final Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+
+                memoryCache.remove(memoryCacheKey);
+                memoryCache.put(memoryCacheKey, bitmap);
+            } else {
+                ImageLoader.getInstance().displayImage(uri, imageView);
+            }
+
+            return;
+        }
+
         final ContentResolver resolver = getContext().getContentResolver();
         final String[] PROJECTION = {
                 ImageColumns.ORIENTATION
         };
-        final Cursor cursor = resolver.query(Uri.parse(uri), PROJECTION, null, null, null);
+        Cursor cursor = null;
+        try {
+            cursor = resolver.query(Uri.parse(uri), PROJECTION, null, null, null);
+        } catch (Exception e) {
+        }
         if (cursor != null) {
             try {
                 if (cursor.moveToFirst()) {

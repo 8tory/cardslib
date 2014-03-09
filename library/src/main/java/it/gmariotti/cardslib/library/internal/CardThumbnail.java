@@ -19,6 +19,7 @@
 package it.gmariotti.cardslib.library.internal;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -86,6 +87,11 @@ public class CardThumbnail extends BaseCard {
      * Resource Drawable Local File
      */
     protected String fileResource;
+
+    /**
+     * Resource Drawable Bitmap
+     */
+    protected Bitmap bitmapResource;
 
     /**
      *  Uses an external library to load image
@@ -190,6 +196,24 @@ public class CardThumbnail extends BaseCard {
      */
     public void setFileResource(String fileResource) {
         this.fileResource = fileResource;
+    }
+
+    /**
+     * Returns the Bitmap for Thumbnail
+     *
+     * @return Bitmap
+     */
+    public Bitmap getBitmapResource() {
+        return bitmapResource;
+    }
+
+    /**
+     * Sets the Bitmap for thumbnail
+     *
+     * @param bitmapResource Bitmap
+     */
+    public void setBitmapResource(Bitmap bitmapResource) {
+        this.bitmapResource = bitmapResource;
     }
 
     /**
