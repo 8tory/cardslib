@@ -278,10 +278,13 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
                 final Bitmap thumbnail = BitmapUtils.createVideoThumbnail(getContext(), videoPath);
                 if (thumbnail != null) {
                     imageView.setImageBitmap(thumbnail);
-                    final Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+                    Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
 
                     memoryCache.remove(memoryCacheKey);
                     memoryCache.put(memoryCacheKey, bitmap);
+
+                    bitmap.recycle();
+                    bitmap = null;
                 }
             } else {
                 ImageLoader.getInstance().displayImage(uri, imageView);

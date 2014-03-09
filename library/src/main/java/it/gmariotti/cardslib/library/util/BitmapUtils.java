@@ -22,7 +22,7 @@ public class BitmapUtils {
         if (bitmap == null)
             return null;
 
-        final Bitmap play = BitmapFactory.decodeResource(context.getResources(),
+        Bitmap play = BitmapFactory.decodeResource(context.getResources(),
                 R.drawable.ic_control_play);
 
         final int x = bitmap.getWidth() / 2;
@@ -33,6 +33,9 @@ public class BitmapUtils {
 
         final Canvas canvas = new Canvas(bitmap);
         canvas.drawBitmap(play, null, rect, null);
+
+        play.recycle();
+        play = null;
 
         return bitmap;
     }
