@@ -50,6 +50,7 @@ import com.nostra13.universalimageloader.core.assist.FailReason;
 import it.gmariotti.cardslib.library.Constants;
 import it.gmariotti.cardslib.library.R;
 import it.gmariotti.cardslib.library.internal.CardThumbnail;
+import it.gmariotti.cardslib.library.util.BitmapUtils;
 import it.gmariotti.cardslib.library.view.base.CardViewInterface;
 
 /**
@@ -259,7 +260,8 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
     }
 
     public void loadBitmap(String uri, ImageView imageView) {
-        if (mCardThumbnail.getBitmapResource() != null) {
+        final String videoPath = mCardThumbnail.getVideoResource();
+        if (videoPath != null) {
             final String URI_AND_SIZE_SEPARATOR = "_";
             final String WIDTH_AND_HEIGHT_SEPARATOR = "x";
             final ImageSize targetSize = new ImageSize(imageView.getWidth(), imageView.getHeight());
@@ -273,11 +275,14 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
             if (memoryCache.get(memoryCacheKey) == null) {
                 ImageLoader.getInstance().displayImage(uri, imageView);
 
-                imageView.setImageBitmap(mCardThumbnail.getBitmapResource());
-                final Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+                final Bitmap thumbnail = BitmapUtils.createVideoThumbnail(getContext(), videoPath);
+                if (thumbnail != null) {
+                    imageView.setImageBitmap(thumbnail);
+                    final Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
 
-                memoryCache.remove(memoryCacheKey);
-                memoryCache.put(memoryCacheKey, bitmap);
+                    memoryCache.remove(memoryCacheKey);
+                    memoryCache.put(memoryCacheKey, bitmap);
+                }
             } else {
                 ImageLoader.getInstance().displayImage(uri, imageView);
             }

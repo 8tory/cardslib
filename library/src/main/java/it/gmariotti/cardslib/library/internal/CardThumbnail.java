@@ -19,7 +19,6 @@
 package it.gmariotti.cardslib.library.internal;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -89,9 +88,9 @@ public class CardThumbnail extends BaseCard {
     protected String fileResource;
 
     /**
-     * Resource Drawable Bitmap
+     * Resource Drawable Video File
      */
-    protected Bitmap bitmapResource;
+    protected String videoResource;
 
     /**
      *  Uses an external library to load image
@@ -199,21 +198,21 @@ public class CardThumbnail extends BaseCard {
     }
 
     /**
-     * Returns the Bitmap for Thumbnail
+     * Returns the video file path for Thumbnail
      *
-     * @return Bitmap
+     * @return url
      */
-    public Bitmap getBitmapResource() {
-        return bitmapResource;
+    public String getVideoResource() {
+        return videoResource;
     }
 
     /**
-     * Sets the Bitmap for thumbnail
+     * Sets the video file path for thumbnail
      *
-     * @param bitmapResource Bitmap
+     * @param videoResource url
      */
-    public void setBitmapResource(Bitmap bitmapResource) {
-        this.bitmapResource = bitmapResource;
+    public void setVideoResource(String videoResource) {
+        this.videoResource = videoResource;
     }
 
     /**
