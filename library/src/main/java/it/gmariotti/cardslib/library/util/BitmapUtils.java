@@ -27,8 +27,17 @@ public class BitmapUtils {
 
         final int x = bitmap.getWidth() / 2;
         final int y = bitmap.getHeight() / 2;
-        final int w = bitmap.getWidth() / 5;
-        final int h = play.getHeight() * w / play.getWidth();
+
+        final int w;
+        final int h;
+        if (bitmap.getWidth() >= bitmap.getHeight()) {
+            h = bitmap.getHeight() / 5;
+            w = play.getWidth() * h / play.getHeight();
+        } else {
+            w = bitmap.getWidth() / 5;
+            h = play.getHeight() * w / play.getWidth();
+        }
+
         final Rect rect = new Rect(x - w / 2, y - h / 2, x + w / 2, y + h / 2);
 
         final Canvas canvas = new Canvas(bitmap);
