@@ -18,11 +18,7 @@
 
 package it.gmariotti.cardslib.library.internal;
 
-import android.content.ContentResolver;
 import android.content.Context;
-import android.database.Cursor;
-import android.net.Uri;
-import android.provider.MediaStore.Images.ImageColumns;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -111,11 +107,6 @@ public class CardThumbnail extends BaseCard {
      */
     protected int errorResourceId=0;
 
-    /**
-     * orientation: Orientation
-     */
-    protected int orientation;
-
     // -------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------
@@ -186,7 +177,6 @@ public class CardThumbnail extends BaseCard {
      */
     public void setUrlResource(String urlResource) {
         this.urlResource = urlResource;
-        setOrientation();
     }
 
     /**
@@ -223,41 +213,6 @@ public class CardThumbnail extends BaseCard {
      */
     public void setVideoResource(String videoResource) {
         this.videoResource = videoResource;
-    }
-
-    /**
-     * Returns the orientation for Thumbnail
-     *
-     * @return
-     */
-    public int getOrientation() {
-        return orientation;
-    }
-
-    private void setOrientation() {
-        final ContentResolver resolver = getContext().getContentResolver();
-
-        final String[] PROJECTION = {
-                ImageColumns.ORIENTATION
-        };
-
-        Cursor cursor = null;
-        try {
-            cursor = resolver.query(Uri.parse(urlResource), PROJECTION, null, null, null);
-        } catch (Exception e) {
-        }
-
-        if (cursor != null) {
-            try {
-                if (cursor.moveToFirst()) {
-                    orientation = cursor.getInt(0);
-                    orientation = (orientation + 360) % 360;
-                }
-            } catch (Exception e) {
-            } finally {
-                cursor.close();
-            }
-        }
     }
 
     /**
