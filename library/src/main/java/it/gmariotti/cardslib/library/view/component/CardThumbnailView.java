@@ -255,7 +255,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
 
     public void loadBitmap(String uri, ImageView imageView) {
         final String videoPath = mCardThumbnail.getVideoResource();
-        if (videoPath != null) {
+        if (false && videoPath != null) {
             final String URI_AND_SIZE_SEPARATOR = "_";
             final String WIDTH_AND_HEIGHT_SEPARATOR = "x";
             final ImageSize targetSize = new ImageSize(imageView.getWidth(), imageView.getHeight());
