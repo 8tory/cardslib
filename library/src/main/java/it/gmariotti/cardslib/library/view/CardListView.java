@@ -682,17 +682,21 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
         if (first == mFirstPos && last == mLastPos)
             return;
 
+        if (first < mFirstPos) {
+            first--;
+            for (int i = 0; i < PRELOAD && first >= 0; i++, first--)
+                mPreloadBefore[i] = preloadImage(first, mPreloadBefore[i]);
+        }
+
+        if (last > mLastPos) {
+            last++;
+            final int count = getCount();
+            for (int i = 0; i < PRELOAD && last < count; i++, last++)
+                mPreloadAfter[i] = preloadImage(last, mPreloadAfter[i]);
+        }
+
         mFirstPos = first;
         mLastPos = last;
-
-        first--;
-        for (int i = 0; i < PRELOAD && first >= 0; i++, first--)
-            mPreloadBefore[i] = preloadImage(first, mPreloadBefore[i]);
-
-        last++;
-        final int count = getCount();
-        for (int i = 0; i < PRELOAD && last < count; i++, last++)
-            mPreloadAfter[i] = preloadImage(last, mPreloadAfter[i]);
     }
 
     private View preloadImage(int pos, View child) {
