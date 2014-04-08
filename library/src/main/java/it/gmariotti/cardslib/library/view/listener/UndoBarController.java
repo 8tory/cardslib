@@ -123,13 +123,14 @@ public class UndoBarController {
     }
 
     public void hideUndoBar(boolean immediate) {
+        mUndoListener = null;
+
         mHideHandler.removeCallbacks(mHideRunnable);
         if (immediate) {
             mBarView.setVisibility(View.GONE);
             mBarView.setAlpha(0);
             mUndoMessage = null;
             mUndoToken = null;
-            mUndoListener = null;
         } else {
             mBarAnimator.cancel();
             mBarAnimator
@@ -142,7 +143,6 @@ public class UndoBarController {
                             mBarView.setVisibility(View.GONE);
                             mUndoMessage = null;
                             mUndoToken = null;
-                            mUndoListener = null;
                         }
                     });
         }
