@@ -72,6 +72,13 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
 
     protected static String TAG = "CardListView";
 
+    private static final int PRELOAD = 1;
+
+    private final View[] mPreloadBefore = new View[PRELOAD];
+    private final View[] mPreloadAfter = new View[PRELOAD];
+    private int mFirstPos;
+    private int mLastPos;
+
     /**
      *  Card Array Adapter
      */
@@ -658,4 +665,62 @@ public class CardListView extends ListView implements CardView.OnExpandListAnima
         }
     }
 
+    @Override
+    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+        super.onScrollChanged(l, t, oldl, oldt);
+
+        preloadImage();
+    }
+
+    private void preloadImage() {
+        if (mAdapter == null)
+            return;
+
+        int first = getFirstVisiblePosition();
+        int last = getLastVisiblePosition();
+
+        if (first == mFirstPos && last == mLastPos)
+            return;
+
+        if (first < mFirstPos) {
+            first--;
+            for (int i = 0; i < PRELOAD && first >= 0; i++, first--)
+                mPreloadBefore[i] = preloadImage(first, mPreloadBefore[i]);
+        }
+
+        if (last > mLastPos) {
+            last++;
+            final int count = getCount();
+            for (int i = 0; i < PRELOAD && last < count; i++, last++)
+                mPreloadAfter[i] = preloadImage(last, mPreloadAfter[i]);
+        }
+
+        mFirstPos = first;
+        mLastPos = last;
+    }
+
+    private View preloadImage(int pos, View child) {
+        child = mAdapter.getView(pos, child, this);
+
+        LayoutParams lp = (LayoutParams) child.getLayoutParams();
+        if (lp == null)
+            lp = (LayoutParams) generateDefaultLayoutParams();
+
+        final int widthSpec = getChildWidthMeasureSpec(lp);
+        final int heightSpec = getChildHeightMeasureSpec(lp);
+        child.measure(widthSpec, heightSpec);
+        child.layout(0, 0, 0, 0);
+
+        return child;
+    }
+
+    private int getChildWidthMeasureSpec(LayoutParams lp) {
+        final int maxWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+        return MeasureSpec.makeMeasureSpec(maxWidth, MeasureSpec.EXACTLY);
+    }
+
+    private int getChildHeightMeasureSpec(LayoutParams lp) {
+        final int maxHeight = getHeight() - getPaddingTop() - getPaddingBottom();
+        return MeasureSpec.makeMeasureSpec(maxHeight, MeasureSpec.EXACTLY);
+    }
 }
