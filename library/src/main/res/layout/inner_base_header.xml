@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-  ~ /*******************************************************************************
-  ~   Copyright (c) 2013 Gabriele Mariotti.
+  ~ *******************************************************************************
+  ~   Copyright (c) 2013-2014 Gabriele Mariotti.
   ~
   ~   Licensed under the Apache License, Version 2.0 (the "License");
   ~   you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
   ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~   See the License for the specific language governing permissions and
   ~   limitations under the License.
-  ~  ******************************************************************************/
+  ~  *****************************************************************************
   -->
 <!-- This is the InnerContent of Header -->
 
@@ -32,15 +32,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/card_header_inner_simple_title"
-        style="@style/card.header_simple_title"
-        android:textSize="13sp"
-        android:textColor="#ffb09883"
-        android:shadowColor="#ffeaddcf"
-        android:shadowRadius="5"
-        android:shadowDx="0"
-        android:shadowDy="0"
-        android:singleLine="true"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp" />
+        style="@style/card.header_simple_title"/>
 
 </LinearLayout>

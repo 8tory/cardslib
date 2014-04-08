@@ -154,11 +154,10 @@ public class ListGplayUndoCardFragment extends BaseFragment {
 
             setOnUndoSwipeListListener(new OnUndoSwipeListListener() {
                 @Override
-                public void onUndoSwipe(Card card) {
+                public void onUndoSwipe(Card card, boolean timeout) {
                     Toast.makeText(getContext(), "Undo card=" + title, Toast.LENGTH_SHORT).show();
                 }
             });
-
         }
 
         @Override
