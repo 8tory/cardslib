@@ -127,7 +127,7 @@ public class GridGplayFragment extends BaseFragment {
             CardHeader header = new CardHeader(getContext());
             header.setButtonOverflowVisible(true);
             header.setTitle(headerTitle);
-            header.setPopupMenu(R.menu.popupmain, new CardHeader.OnClickCardHeaderPopupMenuListener() {
+            header.setPopupMenu(R.menu.popupmain, new CardHeader.SimpleOnClickCardHeaderPopupMenuListener() {
                 @Override
                 public void onMenuItemClick(BaseCard card, MenuItem item) {
                     Toast.makeText(getContext(), "Item " + item.getTitle(), Toast.LENGTH_SHORT).show();

@@ -375,6 +375,10 @@ public class CardHeaderView extends FrameLayout implements CardViewInterface {
                         }
                     });
                     popup.show();
+                    if (mCardHeader.getPopupMenu() > 0 && mCardHeader.getPopupMenuListener() != null) {
+                        // This individual card has it unique menu
+                        mCardHeader.getPopupMenuListener().onMenuClick(mCardHeader, popup);
+                    }
                 }
             });
 

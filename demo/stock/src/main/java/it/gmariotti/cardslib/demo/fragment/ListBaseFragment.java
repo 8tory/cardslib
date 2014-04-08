@@ -100,7 +100,7 @@ public class ListBaseFragment extends BaseFragment {
             header.setTitle(mTitleHeader);
 
             //Add a popup menu. This method set OverFlow button to visible
-            header.setPopupMenu(R.menu.popupmain, new CardHeader.OnClickCardHeaderPopupMenuListener() {
+            header.setPopupMenu(R.menu.popupmain, new CardHeader.SimpleOnClickCardHeaderPopupMenuListener() {
                 @Override
                 public void onMenuItemClick(BaseCard card, MenuItem item) {
                     Toast.makeText(getActivity().getApplicationContext(), "Click on card menu" + mTitleHeader +" item=" +  item.getTitle(), Toast.LENGTH_SHORT).show();

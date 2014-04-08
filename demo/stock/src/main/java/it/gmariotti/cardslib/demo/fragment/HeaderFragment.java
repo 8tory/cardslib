@@ -113,7 +113,7 @@ public class HeaderFragment extends BaseFragment {
         header.setTitle(getString(R.string.demo_header_basetitle));
 
         //Add a popup menu. This method set OverFlow button to visible
-        header.setPopupMenu(R.menu.popupmain, new CardHeader.OnClickCardHeaderPopupMenuListener() {
+        header.setPopupMenu(R.menu.popupmain, new CardHeader.SimpleOnClickCardHeaderPopupMenuListener() {
             @Override
             public void onMenuItemClick(BaseCard card, MenuItem item) {
                 Toast.makeText(getActivity().getApplicationContext(), "Click on " + item.getTitle(), Toast.LENGTH_SHORT).show();

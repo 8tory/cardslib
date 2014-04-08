@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import it.gmariotti.cardslib.library.R;
@@ -57,7 +58,7 @@ import it.gmariotti.cardslib.library.internal.base.BaseCard;
  * </p>
  * You can attach a Popup Menu to overflowMenu with {@link #setPopupMenu(int, CardHeader.OnClickCardHeaderPopupMenuListener)}
  * <pre><code>
- * header.setPopupMenu(R.menu.popupmain, new CardHeader.OnClickCardHeaderPopupMenuListener(){
+ * header.setPopupMenu(R.menu.popupmain, new CardHeader.SimpleOnClickCardHeaderPopupMenuListener(){
  *
  *       public void onMenuItemClick(BaseCard card, MenuItem item) {
  *                 mPopupMenuListener.doSomething(...);
@@ -172,6 +173,20 @@ public class CardHeader extends BaseCard {
      */
     public interface OnClickCardHeaderPopupMenuListener {
         public void onMenuItemClick(BaseCard card, MenuItem item);
+        public void onMenuClick(BaseCard card, PopupMenu menu);
+        public void onMenuPopup(BaseCard card, PopupMenu menu);
+        public void onMenuDismiss(BaseCard card, PopupMenu menu);
+    }
+
+    public static class SimpleOnClickCardHeaderPopupMenuListener implements OnClickCardHeaderPopupMenuListener {
+        @Override
+        public void onMenuItemClick(BaseCard card, MenuItem item) {}
+        @Override
+        public void onMenuClick(BaseCard card, PopupMenu menu) {}
+        @Override
+        public void onMenuPopup(BaseCard card, PopupMenu menu) {}
+        @Override
+        public void onMenuDismiss(BaseCard card, PopupMenu menu) {}
     }
 
     /**
