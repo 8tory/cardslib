@@ -25,6 +25,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.LruCache;
 import android.view.LayoutInflater;
@@ -253,6 +254,26 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
         loadBitmap(uri.toString(), imageView);
     }
 
+    private static LruCache<String, Boolean> sVideoCache;
+    public static final int K = 1024;
+
+    private static LruCache<String, Boolean> getVideoCache() {
+        if (sVideoCache == null) {
+            sVideoCache = new LruCache<String, Boolean>(16 * K);
+        }
+        return sVideoCache;
+    }
+
+    private boolean isVideoUri(String uri) {
+        Boolean isVideo = getVideoCache().get(uri);
+        if (isVideo == null) {
+            String type = getContext().getContentResolver().getType(Uri.parse(uri));
+            isVideo = new Boolean(!TextUtils.isEmpty(type) && type.startsWith("video/"));
+            getVideoCache().put(uri, isVideo);
+        }
+        return isVideo;
+    }
+
     public void loadBitmap(String uri, ImageView imageView) {
         final String videoPath = mCardThumbnail.getVideoResource();
         if (false && videoPath != null) {
@@ -282,6 +303,11 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
             }
 
             return;
+        }
+
+        final View videoIndicator = (View) findViewById(R.id.ic_video);
+        if (videoIndicator != null) {
+            videoIndicator.setVisibility(isVideoUri(uri) ? View.VISIBLE : View.GONE);
         }
 
         // Disable ProgressBar

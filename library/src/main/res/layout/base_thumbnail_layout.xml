@@ -43,5 +43,13 @@
         android:layout_width="match_parent"
         style="@style/card_thumbnail_image"/>
 
+    <ImageView
+        android:layout_width="35dp"
+        android:layout_height="30dp"
+        android:id="@+id/ic_video"
+        android:src="@drawable/ic_video_indicator"
+        android:layout_gravity="bottom|right"
+        />
+
 </FrameLayout>
 
