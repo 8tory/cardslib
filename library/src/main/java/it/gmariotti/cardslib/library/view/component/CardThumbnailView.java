@@ -22,19 +22,24 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.SurfaceTexture;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.LruCache;
 import android.view.LayoutInflater;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import java.io.File;
+import java.io.IOException;
 
 import com.nostra13.universalimageloader.cache.memory.MemoryCacheAware;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -61,7 +66,7 @@ import it.gmariotti.cardslib.library.view.base.CardViewInterface;
  *
  * @author Gabriele Mariotti (gabri.mariotti@gmail.com)
  */
-public class CardThumbnailView extends FrameLayout implements CardViewInterface {
+public class CardThumbnailView extends FrameLayout implements CardViewInterface, TextureView.SurfaceTextureListener {
 
     public static final String SCHEME_DRAWABLE = "drawable";
 
@@ -175,6 +180,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
 
         //Get ImageVIew
         mImageView= (ImageView) findViewById(R.id.card_thumbnail_image);
+        mVideoView = (TextureView) findViewById(R.id.card_thumbnail_video);
     }
 
     //--------------------------------------------------------------------------
@@ -240,6 +246,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
         }
     }
 
+    private String mUri;
     //--------------------------------------------------------------------------
     // Load Bitmap and cache manage
     //--------------------------------------------------------------------------
@@ -274,8 +281,70 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface 
         return isVideo;
     }
 
+    private MediaPlayer mMediaPlayer;
+    private TextureView mVideoView;
+
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i2) {
+        Surface surface = new Surface(surfaceTexture);
+
+        try {
+            mMediaPlayer = new MediaPlayer();
+            mMediaPlayer
+                .setDataSource(getContext(), Uri.parse(mUri));
+            mMediaPlayer.setSurface(surface);
+            mMediaPlayer.setLooping(true);
+
+            // don't forget to call MediaPlayer.prepareAsync() method when you use constructor for
+            // creating MediaPlayer
+            mMediaPlayer.prepareAsync();
+
+            // Play video when the media source is ready for playback.
+            mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mediaPlayer) {
+                    mVideoView.setVisibility(View.VISIBLE);
+                    mediaPlayer.start();
+                    mImageView.setVisibility(View.GONE);
+                }
+            });
+
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i2) {
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+        if (mMediaPlayer != null) {
+            // Make sure we stop video and release resources when activity is destroyed.
+            mMediaPlayer.stop();
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+        }
+        return true;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+    }
+
     public void loadBitmap(String uri, ImageView imageView) {
         final String videoPath = mCardThumbnail.getVideoResource();
+        if (isVideoUri(uri)) {
+            mVideoView.setSurfaceTextureListener(this);
+        }
+
         if (false && videoPath != null) {
             final String URI_AND_SIZE_SEPARATOR = "_";
             final String WIDTH_AND_HEIGHT_SEPARATOR = "x";
