@@ -37,19 +37,18 @@
         android:visibility="gone"
         />
 
-    <it.gmariotti.cardslib.library.widget.SquareImageView
-        android:id="@+id/card_thumbnail_image"
-        android:scaleType="centerCrop"
-        android:layout_width="match_parent"
-        style="@style/card_thumbnail_image"/>
-
     <TextureView
         android:id="@+id/card_thumbnail_video"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         style="@style/card_thumbnail_image"
-        android:visibility="gone"
         />
+
+    <it.gmariotti.cardslib.library.widget.SquareImageView
+        android:id="@+id/card_thumbnail_image"
+        android:scaleType="centerCrop"
+        android:layout_width="match_parent"
+        style="@style/card_thumbnail_image"/>
 
     <ImageView
         android:layout_width="35dp"

@@ -22,13 +22,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.Surface;
@@ -181,6 +184,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
         //Get ImageVIew
         mImageView= (ImageView) findViewById(R.id.card_thumbnail_image);
         mVideoView = (TextureView) findViewById(R.id.card_thumbnail_video);
+        mVideoView.setSurfaceTextureListener(this);
     }
 
     //--------------------------------------------------------------------------
@@ -246,7 +250,6 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
         }
     }
 
-    private String mUri;
     //--------------------------------------------------------------------------
     // Load Bitmap and cache manage
     //--------------------------------------------------------------------------
@@ -283,55 +286,22 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
 
     private MediaPlayer mMediaPlayer;
     private TextureView mVideoView;
+    private Surface mSurface;
 
     @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i2) {
-        Surface surface = new Surface(surfaceTexture);
-
-        try {
-            mMediaPlayer = new MediaPlayer();
-            mMediaPlayer
-                .setDataSource(getContext(), Uri.parse(mUri));
-            mMediaPlayer.setSurface(surface);
-            mMediaPlayer.setLooping(true);
-
-            // don't forget to call MediaPlayer.prepareAsync() method when you use constructor for
-            // creating MediaPlayer
-            mMediaPlayer.prepareAsync();
-
-            // Play video when the media source is ready for playback.
-            mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mediaPlayer) {
-                    mVideoView.setVisibility(View.VISIBLE);
-                    mediaPlayer.start();
-                    mImageView.setVisibility(View.GONE);
-                }
-            });
-
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
+        Log.d("Log8", "onSurfaceTextureAvailable");
+        mSurface = new Surface(surfaceTexture);
     }
 
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i2) {
+        Log.d("Log8", "onSurfaceTextureSizeChanged");
     }
 
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
-        if (mMediaPlayer != null) {
-            // Make sure we stop video and release resources when activity is destroyed.
-            mMediaPlayer.stop();
-            mMediaPlayer.release();
-            mMediaPlayer = null;
-        }
+        Log.d("Log8", "onSurfaceTextureDestroyed");
         return true;
     }
 
@@ -339,12 +309,53 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
     public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
     }
 
-    public void loadBitmap(String uri, ImageView imageView) {
-        final String videoPath = mCardThumbnail.getVideoResource();
-        if (isVideoUri(uri)) {
-            mVideoView.setSurfaceTextureListener(this);
+    private float mVideoWidth;
+    private float mVideoHeight;
+
+    private void calculateVideoSize(Uri uri) {
+        try {
+            MediaMetadataRetriever metaRetriever = new MediaMetadataRetriever();
+            metaRetriever.setDataSource(getContext(), uri);
+            String height = metaRetriever
+                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
+            String width = metaRetriever
+                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
+            mVideoHeight = Float.parseFloat(height);
+            mVideoWidth = Float.parseFloat(width);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateTextureViewSize(TextureView view, int viewWidth, int viewHeight) {
+        float scaleX = 1.0f;
+        float scaleY = 1.0f;
+
+        if (mVideoWidth > viewWidth && mVideoHeight > viewHeight) {
+            scaleX = mVideoWidth / viewWidth;
+            scaleY = mVideoHeight / viewHeight;
+        } else if (mVideoWidth < viewWidth && mVideoHeight < viewHeight) {
+            scaleY = viewWidth / mVideoWidth;
+            scaleX = viewHeight / mVideoHeight;
+        } else if (viewWidth > mVideoWidth) {
+            scaleY = (viewWidth / mVideoWidth) / (viewHeight / mVideoHeight);
+        } else if (viewHeight > mVideoHeight) {
+            scaleX = (viewHeight / mVideoHeight) / (viewWidth / mVideoWidth);
         }
 
+        // Calculate pivot points, in our case crop from center
+        int pivotPointX = viewWidth / 2;
+        int pivotPointY = viewHeight / 2;
+
+        Matrix matrix = new Matrix();
+        matrix.setScale(scaleX, scaleY, pivotPointX, pivotPointY);
+
+        view.setTransform(matrix);
+        view.setLayoutParams(new FrameLayout.LayoutParams(viewWidth, viewHeight));
+    }
+
+    public void loadBitmap(String uri, ImageView imageView) {
+        final String videoPath = mCardThumbnail.getVideoResource();
         if (false && videoPath != null) {
             final String URI_AND_SIZE_SEPARATOR = "_";
             final String WIDTH_AND_HEIGHT_SEPARATOR = "x";
@@ -382,6 +393,54 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
         // Disable ProgressBar
         if (true) {
             ImageLoader.getInstance().displayImage(uri, imageView);
+
+                if (isVideoUri(uri) && mSurface != null) {
+
+                    if (mMediaPlayer != null) {
+                        // Make sure we stop video and release resources when activity is destroyed.
+                        mMediaPlayer.stop();
+                        mMediaPlayer.release();
+                        mMediaPlayer = null;
+                    }
+
+                    calculateVideoSize(Uri.parse(uri));
+                    Log.d("Log8", "video: wh: " + mVideoWidth + ", " + mVideoHeight);
+                    updateTextureViewSize(mVideoView, mImageView.getMeasuredWidth(), mImageView.getMeasuredHeight());
+                    Log.d("Log8", "image: wh: " + mImageView.getMeasuredWidth() + ", " +  mImageView.getMeasuredHeight());
+                    try {
+                        mMediaPlayer = new MediaPlayer();
+                        mMediaPlayer
+                            .setDataSource(getContext(), Uri.parse(uri));
+                        mMediaPlayer.setSurface(mSurface);
+                        mMediaPlayer.setLooping(true);
+
+                        // don't forget to call MediaPlayer.prepareAsync() method when you use constructor for
+                        // creating MediaPlayer
+                        mMediaPlayer.prepareAsync();
+
+                        // Play video when the media source is ready for playback.
+                        mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                            @Override
+                            public void onPrepared(MediaPlayer mediaPlayer) {
+                                Log.d("Log8", "onPrepared");
+                                mediaPlayer.start();
+                                mImageView.setVisibility(View.GONE);
+                            }
+                        });
+
+                    } catch (IllegalArgumentException e) {
+                        e.printStackTrace();
+                    } catch (SecurityException e) {
+                        e.printStackTrace();
+                    } catch (IllegalStateException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    mImageView.setVisibility(View.VISIBLE);
+                }
+
             return;
         }
 
@@ -417,7 +476,6 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
             @Override
             public void onLoadingComplete(String imageUri, View view,
                 Bitmap loadedImage) {
-                ((ImageView) view).setImageBitmap(loadedImage);
                 handler.removeCallbacks(r);
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
             }
