@@ -292,16 +292,23 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
     public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
         Log.d("Log8", "onSurfaceTextureAvailable");
         mSurface = new Surface(surfaceTexture);
+        mVideoView.setVisibility(View.INVISIBLE);
     }
 
     @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i2) {
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
         Log.d("Log8", "onSurfaceTextureSizeChanged");
     }
 
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
         Log.d("Log8", "onSurfaceTextureDestroyed");
+        if (mMediaPlayer != null) {
+            // Make sure we stop video and release resources when activity is destroyed.
+            mMediaPlayer.stop();
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+        }
         return true;
     }
 
@@ -327,7 +334,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
         }
     }
 
-    private void updateTextureViewSize(TextureView view, int viewWidth, int viewHeight) {
+    private void updateTextureViewSize(TextureView view, String uri, int viewWidth, int viewHeight) {
         float scaleX = 1.0f;
         float scaleY = 1.0f;
 
@@ -392,20 +399,20 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
 
         // Disable ProgressBar
         if (true) {
+            if (mMediaPlayer != null) {
+                // Make sure we stop video and release resources when activity is destroyed.
+                mMediaPlayer.stop();
+                mMediaPlayer.release();
+                mMediaPlayer = null;
+            }
+            mImageView.setVisibility(View.VISIBLE);
+
             ImageLoader.getInstance().displayImage(uri, imageView);
 
                 if (isVideoUri(uri) && mSurface != null) {
-
-                    if (mMediaPlayer != null) {
-                        // Make sure we stop video and release resources when activity is destroyed.
-                        mMediaPlayer.stop();
-                        mMediaPlayer.release();
-                        mMediaPlayer = null;
-                    }
-
                     calculateVideoSize(Uri.parse(uri));
                     Log.d("Log8", "video: wh: " + mVideoWidth + ", " + mVideoHeight);
-                    updateTextureViewSize(mVideoView, mImageView.getMeasuredWidth(), mImageView.getMeasuredHeight());
+                    updateTextureViewSize(mVideoView, uri, mImageView.getMeasuredWidth(), mImageView.getMeasuredHeight());
                     Log.d("Log8", "image: wh: " + mImageView.getMeasuredWidth() + ", " +  mImageView.getMeasuredHeight());
                     try {
                         mMediaPlayer = new MediaPlayer();
@@ -422,9 +429,10 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
                         mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                             @Override
                             public void onPrepared(MediaPlayer mediaPlayer) {
+                                mVideoView.setVisibility(View.VISIBLE);
                                 Log.d("Log8", "onPrepared");
                                 mediaPlayer.start();
-                                mImageView.setVisibility(View.GONE);
+                                mImageView.setVisibility(View.INVISIBLE);
                             }
                         });
 
@@ -437,8 +445,6 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                } else {
-                    mImageView.setVisibility(View.VISIBLE);
                 }
 
             return;
