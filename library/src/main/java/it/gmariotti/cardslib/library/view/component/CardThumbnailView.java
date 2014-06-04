@@ -21,14 +21,18 @@ package it.gmariotti.cardslib.library.view.component;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnVideoSizeChangedListener;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
+import android.provider.MediaStore.Images.ImageColumns;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -334,6 +338,8 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
         }
     }
 
+    private boolean mLandscape = true;
+
     private void updateTextureViewSize(TextureView view, String uri, int viewWidth, int viewHeight) {
         float scaleX = 1.0f;
         float scaleY = 1.0f;
@@ -350,15 +356,75 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
             scaleX = (viewHeight / mVideoHeight) / (viewWidth / mVideoWidth);
         }
 
-        // Calculate pivot points, in our case crop from center
+        // CENTER_CROP
         int pivotPointX = viewWidth / 2;
         int pivotPointY = viewHeight / 2;
 
         Matrix matrix = new Matrix();
-        matrix.setScale(scaleX, scaleY, pivotPointX, pivotPointY);
+        if (mLandscape) {
+            matrix.setScale(scaleY, scaleX, pivotPointY, pivotPointX); // landscape
+        } else {
+            matrix.setScale(scaleX, scaleY, pivotPointX, pivotPointY); // portrait
+        }
 
         view.setTransform(matrix);
         view.setLayoutParams(new FrameLayout.LayoutParams(viewWidth, viewHeight));
+    }
+
+    private static LruCache<String, Integer> sRotationCache;
+    private static LruCache<String, Integer> getRotationCache() {
+        if (sRotationCache == null) {
+            sRotationCache = new LruCache<String, Integer>(1 * K);
+        }
+        return sRotationCache;
+    }
+
+    private int getVideoRotation(String uri) {
+        Integer rotation = getRotationCache().get(uri);
+
+        if (rotation != null) return rotation;
+
+        if (Build.VERSION.SDK_INT >= 17) {
+            MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
+            metadataRetriever.setDataSource(getContext(), Uri.parse(uri));
+
+            String s = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION);
+            rotation = Integer.valueOf(s);
+        } else {
+            rotation = 90;
+        }
+
+        getRotationCache().put(uri, rotation);
+        return rotation;
+    }
+
+    private int getRotation(String uri) {
+        Integer rotation = getRotationCache().get(uri);
+
+        if (rotation != null) return rotation;
+
+        if (isVideoUri(uri)) return getVideoRotation(uri);
+
+        // image
+        boolean flip = false;
+        final String[] PROJECTION = {
+            ImageColumns.ORIENTATION
+        };
+        Cursor cursor = null;
+        try {
+            cursor = getContext().getContentResolver().query(Uri.parse(uri), PROJECTION, null, null, null);
+            if (cursor.moveToFirst()) {
+                int orientation = cursor.getInt(cursor.getColumnIndexOrThrow((ImageColumns.ORIENTATION)));
+                rotation = (orientation + 360) % 360;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            cursor.close();
+        }
+
+        getRotationCache().put(uri, rotation);
+        return rotation;
     }
 
     public void loadBitmap(String uri, ImageView imageView) {
@@ -411,15 +477,29 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
 
                 if (isVideoUri(uri) && mSurface != null) {
                     calculateVideoSize(Uri.parse(uri));
-                    Log.d("Log8", "video: wh: " + mVideoWidth + ", " + mVideoHeight);
-                    updateTextureViewSize(mVideoView, uri, mImageView.getMeasuredWidth(), mImageView.getMeasuredHeight());
-                    Log.d("Log8", "image: wh: " + mImageView.getMeasuredWidth() + ", " +  mImageView.getMeasuredHeight());
+                    final String finalUri = uri;
                     try {
                         mMediaPlayer = new MediaPlayer();
                         mMediaPlayer
                             .setDataSource(getContext(), Uri.parse(uri));
                         mMediaPlayer.setSurface(mSurface);
                         mMediaPlayer.setLooping(true);
+                        mMediaPlayer.setOnVideoSizeChangedListener(new OnVideoSizeChangedListener() {
+                                @Override
+                                public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
+                                    mLandscape = !(width > height);
+                                    Log.d("Log8", "video: wh: " + mVideoWidth + ", " + mVideoHeight);
+                                    updateTextureViewSize(mVideoView, finalUri, mImageView.getMeasuredWidth(), mImageView.getMeasuredHeight());
+                                    Log.d("Log8", "image: wh: " + mImageView.getMeasuredWidth() + ", " +  mImageView.getMeasuredHeight());
+                                }
+                            }
+                        );
+                        /*
+                        mLandscape = ((getVideoRotation() % 90) == 0);
+                        Log.d("Log8", "video: wh: " + mVideoWidth + ", " + mVideoHeight);
+                        updateTextureViewSize(mVideoView, uri, mImageView.getMeasuredWidth(), mImageView.getMeasuredHeight());
+                        Log.d("Log8", "image: wh: " + mImageView.getMeasuredWidth() + ", " +  mImageView.getMeasuredHeight());
+                        */
 
                         // don't forget to call MediaPlayer.prepareAsync() method when you use constructor for
                         // creating MediaPlayer
