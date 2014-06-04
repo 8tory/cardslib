@@ -296,7 +296,6 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
     public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
         Log.d("Log8", "onSurfaceTextureAvailable");
         mSurface = new Surface(surfaceTexture);
-        mVideoView.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -471,8 +470,9 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
                 mMediaPlayer.release();
                 mMediaPlayer = null;
             }
-            mImageView.setVisibility(View.VISIBLE);
 
+
+            mVideoView.setAlpha(0f);
             ImageLoader.getInstance().displayImage(uri, imageView);
 
                 if (isVideoUri(uri) && mSurface != null) {
@@ -509,10 +509,9 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
                         mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                             @Override
                             public void onPrepared(MediaPlayer mediaPlayer) {
-                                mVideoView.setVisibility(View.VISIBLE);
                                 Log.d("Log8", "onPrepared");
                                 mediaPlayer.start();
-                                mImageView.setVisibility(View.INVISIBLE);
+                                mVideoView.setAlpha(1f);
                             }
                         });
 
