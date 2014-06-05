@@ -585,9 +585,10 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
                         mediaPlayer.start();
                         sPlayingPlayers.put(mediaPlayer, finalUri);
                         Log.d("Log8", "play uri: " + finalUri);
-                        AlphaAnimation animation = new AlphaAnimation(0f, 1f);
-                        animation.setDuration(300);
-                        mVideoView.startAnimation(animation);
+                        //AlphaAnimation animation = new AlphaAnimation(0f, 1f);
+                        //animation.setDuration(300);
+                        //mVideoView.startAnimation(animation);
+                        mVideoView.setAlpha(1f);
                     }
                 });
                 return true;
