@@ -42,11 +42,16 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.nostra13.universalimageloader.cache.memory.MemoryCacheAware;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -230,6 +235,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
         if (mInternalOuterView!=null)
             mCardThumbnail.setupInnerViewElements((ViewGroup)mInternalOuterView,mImageView);
 
+        mVideoView.setAlpha(0f);
         mImageView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
@@ -237,6 +243,12 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
                 v.removeOnLayoutChangeListener(this);
             }
         });
+        Log.d("Log8", "setupInnerView");
+        if (mCardThumbnail.getUrlResource() != null) {
+            mUri = mCardThumbnail.getUrlResource();
+            Log.d("Log8", "getUrlResource" + mUri);
+            playVideo(mUri);
+        }
         mImageView.requestLayout();
     }
 
@@ -288,7 +300,8 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
         return isVideo;
     }
 
-    private MediaPlayer mMediaPlayer;
+    public MediaPlayer mMediaPlayer;
+    public static List<MediaPlayer> sMediaPlayers = new ArrayList<MediaPlayer>();
     private TextureView mVideoView;
     private Surface mSurface;
 
@@ -306,12 +319,6 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
         Log.d("Log8", "onSurfaceTextureDestroyed");
-        if (mMediaPlayer != null) {
-            // Make sure we stop video and release resources when activity is destroyed.
-            mMediaPlayer.stop();
-            mMediaPlayer.release();
-            mMediaPlayer = null;
-        }
         return true;
     }
 
@@ -390,7 +397,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
             String s = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION);
             rotation = Integer.valueOf(s);
         } else {
-            rotation = 90;
+            rotation = 90; // TODO
         }
 
         getRotationCache().put(uri, rotation);
@@ -427,6 +434,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
     }
 
     public void loadBitmap(String uri, ImageView imageView) {
+        mUri = uri;
         final String videoPath = mCardThumbnail.getVideoResource();
         if (false && videoPath != null) {
             final String URI_AND_SIZE_SEPARATOR = "_";
@@ -457,6 +465,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
             return;
         }
 
+        if (isVideoUri(uri)) Log.d("Log8", "loadBitmap videoUri: " + uri);
         final View videoIndicator = (View) findViewById(R.id.ic_video);
         if (videoIndicator != null) {
             videoIndicator.setVisibility(isVideoUri(uri) ? View.VISIBLE : View.GONE);
@@ -464,68 +473,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
 
         // Disable ProgressBar
         if (true) {
-            if (mMediaPlayer != null) {
-                // Make sure we stop video and release resources when activity is destroyed.
-                mMediaPlayer.stop();
-                mMediaPlayer.release();
-                mMediaPlayer = null;
-            }
-
-
-            mVideoView.setAlpha(0f);
             ImageLoader.getInstance().displayImage(uri, imageView);
-
-                if (isVideoUri(uri) && mSurface != null) {
-                    calculateVideoSize(Uri.parse(uri));
-                    final String finalUri = uri;
-                    try {
-                        mMediaPlayer = new MediaPlayer();
-                        mMediaPlayer
-                            .setDataSource(getContext(), Uri.parse(uri));
-                        mMediaPlayer.setSurface(mSurface);
-                        mMediaPlayer.setLooping(true);
-                        mMediaPlayer.setOnVideoSizeChangedListener(new OnVideoSizeChangedListener() {
-                                @Override
-                                public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
-                                    mLandscape = !(width > height);
-                                    Log.d("Log8", "video: wh: " + mVideoWidth + ", " + mVideoHeight);
-                                    updateTextureViewSize(mVideoView, finalUri, mImageView.getMeasuredWidth(), mImageView.getMeasuredHeight());
-                                    Log.d("Log8", "image: wh: " + mImageView.getMeasuredWidth() + ", " +  mImageView.getMeasuredHeight());
-                                }
-                            }
-                        );
-                        /*
-                        mLandscape = ((getVideoRotation() % 90) == 0);
-                        Log.d("Log8", "video: wh: " + mVideoWidth + ", " + mVideoHeight);
-                        updateTextureViewSize(mVideoView, uri, mImageView.getMeasuredWidth(), mImageView.getMeasuredHeight());
-                        Log.d("Log8", "image: wh: " + mImageView.getMeasuredWidth() + ", " +  mImageView.getMeasuredHeight());
-                        */
-
-                        // don't forget to call MediaPlayer.prepareAsync() method when you use constructor for
-                        // creating MediaPlayer
-                        mMediaPlayer.prepareAsync();
-
-                        // Play video when the media source is ready for playback.
-                        mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                            @Override
-                            public void onPrepared(MediaPlayer mediaPlayer) {
-                                Log.d("Log8", "onPrepared");
-                                mediaPlayer.start();
-                                mVideoView.setAlpha(1f);
-                            }
-                        });
-
-                    } catch (IllegalArgumentException e) {
-                        e.printStackTrace();
-                    } catch (SecurityException e) {
-                        e.printStackTrace();
-                    } catch (IllegalStateException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-
             return;
         }
 
@@ -565,6 +513,95 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
             }
         });
+    }
+
+    private String mUri;
+
+    public void stopVideo() {
+        if (mMediaPlayer != null) {
+            mMediaPlayer.stop();
+            mMediaPlayer.release();
+        }
+    }
+
+    public boolean playVideo() {
+        return playVideo(mUri);
+    }
+
+    private static Map<MediaPlayer, String> sPlayingPlayers = new HashMap<MediaPlayer, String>();
+
+    public boolean playVideo(String uri) {
+        //if (sPlayingPlayers.containsValue(uri)) return true;
+        try {
+            if (mMediaPlayer != null) {
+                mMediaPlayer.stop();
+                mMediaPlayer.release();
+                String i = sPlayingPlayers.get(mMediaPlayer);
+                Log.d("Log8", "remove: : " + i);
+                sPlayingPlayers.remove(mMediaPlayer);
+            }
+        } catch (IllegalArgumentException e) {
+        } catch (SecurityException e) {
+        } catch (IllegalStateException e) {
+        }
+
+        if (isVideoUri(uri) && mSurface != null) {
+            calculateVideoSize(Uri.parse(uri));
+            final String finalUri = uri;
+
+            mMediaPlayer = new MediaPlayer();
+
+            try {
+                mMediaPlayer.setDataSource(getContext(), Uri.parse(uri));
+                mMediaPlayer.setSurface(mSurface);
+                mMediaPlayer.setLooping(true);
+                mMediaPlayer.setVolume(0f, 0f);
+                mMediaPlayer.setOnVideoSizeChangedListener(new OnVideoSizeChangedListener() {
+                    @Override
+                    public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
+                        mLandscape = !(width > height);
+                        Log.d("Log8", "video: wh: " + mVideoWidth + ", " + mVideoHeight);
+                        updateTextureViewSize(mVideoView, finalUri, mImageView.getMeasuredWidth(), mImageView.getMeasuredHeight());
+                        Log.d("Log8", "image: wh: " + mImageView.getMeasuredWidth() + ", " +  mImageView.getMeasuredHeight());
+                    }
+                }
+                );
+                /*
+                   mLandscape = ((getVideoRotation() % 90) == 0);
+                   Log.d("Log8", "video: wh: " + mVideoWidth + ", " + mVideoHeight);
+                   updateTextureViewSize(mVideoView, uri, mImageView.getMeasuredWidth(), mImageView.getMeasuredHeight());
+                   Log.d("Log8", "image: wh: " + mImageView.getMeasuredWidth() + ", " +  mImageView.getMeasuredHeight());
+                   */
+
+                // don't forget to call MediaPlayer.prepareAsync() method when you use constructor for
+                // creating MediaPlayer
+                mMediaPlayer.prepareAsync();
+
+                // Play video when the media source is ready for playback.
+                mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                    @Override
+                    public void onPrepared(MediaPlayer mediaPlayer) {
+                        Log.d("Log8", "onPrepared");
+                        mediaPlayer.start();
+                        sPlayingPlayers.put(mediaPlayer, finalUri);
+                        Log.d("Log8", "play uri: " + finalUri);
+                        AlphaAnimation animation = new AlphaAnimation(0f, 1f);
+                        animation.setDuration(300);
+                        mVideoView.startAnimation(animation);
+                    }
+                });
+                return true;
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            } catch (SecurityException e) {
+                e.printStackTrace();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
     }
 
     //--------------------------------------------------------------------------
