@@ -146,7 +146,11 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
             //Inflate layout
             if (view == null) {
                 recycle = false;
-                view = mInflater.inflate(layout, parent, false);
+                try {
+                    view = mInflater.inflate(layout, parent, false);
+                } catch (Exception e) { // Workaround: Use black empty view
+                    return new View(mContext);
+                }
             } else {
                 recycle = true;
             }

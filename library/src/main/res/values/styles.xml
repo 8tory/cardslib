@@ -83,7 +83,9 @@
 
     <!-- Button Overflow in Header -->
     <style name="card.header_button_base.overflow" >
-        <item name="android:background">@drawable/card_menu_button_overflow</item>
+        <item name="android:alpha">0.3</item>
+        <item name="android:src">@drawable/card_menu_button_overflow</item>
+        <item name="android:background">@drawable/button_background_gray</item>
     </style>
 
     <!-- Button to Expand/Collapse in Header -->

@@ -28,6 +28,7 @@
     <!-- Used by selector -->
     <color name="card_pressed">#7E0099CC</color>
 
+    <color name="gray_background">#ddbbbbbb</color>
 
 
 </resources>
