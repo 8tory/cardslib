@@ -245,9 +245,9 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
                 v.removeOnLayoutChangeListener(this);
             }
         });
+        mImageView.requestLayout();
         playVideo(); // try to play
         startCamera(); // try to openCamera
-        mImageView.requestLayout();
     }
 
     private Camera mCamera;
@@ -298,7 +298,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
             else if (mCardThumbnail.getFileResource() != null)
                 loadBitmap(new File(mCardThumbnail.getFileResource()), mImageView);
             else
-                loadBitmap(mCardThumbnail.getErrorResourceId(), mImageView);
+                return;
         }
     }
 
@@ -345,7 +345,8 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
         Log.d("Log8", "onSurfaceTextureAvailable");
-        mSurface = new Surface(surfaceTexture);
+        mSurfaceTexture = surfaceTexture;
+        mSurface = new Surface(mSurfaceTexture);
         playVideo();
         startCamera();
     }
@@ -476,6 +477,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
 
     public void loadBitmap(String uri, ImageView imageView) {
         mUri = uri;
+        if (uri == null) return;
         final String videoPath = mCardThumbnail.getVideoResource();
         if (false && videoPath != null) {
             final String URI_AND_SIZE_SEPARATOR = "_";
@@ -574,11 +576,13 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
     }
 
     public boolean playVideo() {
+        Log.d("CardThumbnailView:playVideo: ", "mCardThumbnail" + mCardThumbnail);
         if (mCardThumbnail.getUrlResource() != null) {
             mUri = mCardThumbnail.getUrlResource();
             Log.d("Log8", "getUrlResource" + mUri);
+            return playVideo(mUri);
         }
-        return playVideo(mUri);
+        return false;
     }
 
     private static Map<MediaPlayer, String> sPlayingPlayers = new HashMap<MediaPlayer, String>();

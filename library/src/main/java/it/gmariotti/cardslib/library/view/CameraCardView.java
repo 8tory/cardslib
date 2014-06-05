@@ -41,6 +41,8 @@ import java.util.List;
 import it.gmariotti.cardslib.library.R;
 import it.gmariotti.cardslib.library.internal.Card;
 import it.gmariotti.cardslib.library.internal.CardGridArrayAdapter;
+import it.gmariotti.cardslib.library.internal.CardHeader;
+import it.gmariotti.cardslib.library.internal.CardThumbnail;
 
 public class CameraCardView extends CardView {
     // -------------------------------------------------------------
@@ -48,15 +50,42 @@ public class CameraCardView extends CardView {
     // -------------------------------------------------------------
 
     public CameraCardView(Context context) {
+        //this(context, null);
         super(context);
+        mCardThumbnail = new CardThumbnail(getContext());
+        mCardThumbnail.enableCamera();
+        Card card = new Card(getContext());
+        CardHeader header = new CardHeader(getContext());
+        header.setTitle("haha");
+        card.addCardHeader(header);
+        card.addCardThumbnail(mCardThumbnail);
+        setCard(card);
     }
 
     public CameraCardView(Context context, AttributeSet attrs) {
+        //this(context, attrs, 0);
         super(context, attrs);
+        mCardThumbnail = new CardThumbnail(getContext());
+        mCardThumbnail.enableCamera();
+        Card card = new Card(getContext());
+        CardHeader header = new CardHeader(getContext());
+        header.setTitle("haha");
+        card.addCardHeader(header);
+        card.addCardThumbnail(mCardThumbnail);
+        setCard(card);
     }
 
     public CameraCardView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        mCardThumbnail = new CardThumbnail(getContext());
+        mCardThumbnail.enableCamera();
+        Card card = new Card(getContext());
+        CardHeader header = new CardHeader(getContext());
+        header.setTitle("haha");
+        card.addCardHeader(header);
+        card.addCardThumbnail(mCardThumbnail);
+        Log.d("CameraCardView: CameraCardView", "" + mCardThumbnail);
+        setCard(card);
     }
 
     /**
@@ -64,7 +93,7 @@ public class CameraCardView extends CardView {
      */
     @Override
     protected void setupThumbnailView() {
+        Log.d("CameraCardView: setupThumbnailView", "" + mCardThumbnail);
         super.setupThumbnailView();
-        mCardThumbnail.enableCamera();
     }
 }
