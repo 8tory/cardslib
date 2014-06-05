@@ -97,6 +97,21 @@ public class CardThumbnail extends BaseCard {
      */
     protected boolean mExternalUsage=false;
 
+    protected boolean mCameraEnabled = false;
+
+    public boolean isCameraEnabled() {
+        return mCameraEnabled;
+    }
+
+    public void enableCamera() {
+        mCameraEnabled = true;
+    }
+
+    public void disableCamera() {
+        mCameraEnabled = false;
+    }
+
+    /**
     /**
      * Placeholder
      */

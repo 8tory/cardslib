@@ -20,12 +20,14 @@ package it.gmariotti.cardslib.library.view.component;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.graphics.drawable.BitmapDrawable;
+import android.hardware.Camera;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnVideoSizeChangedListener;
@@ -244,7 +246,46 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
             }
         });
         playVideo(); // try to play
+        startCamera(); // try to openCamera
         mImageView.requestLayout();
+    }
+
+    private Camera mCamera;
+
+    public void startCamera() {
+        if (!mCardThumbnail.isCameraEnabled()) return;
+        if (mSurfaceTexture == null) return;
+        if (mCamera == null) {
+            mCamera = Camera.open();
+
+            try {
+                mCamera.setPreviewTexture(mSurfaceTexture);
+                mCamera.startPreview();
+                mVideoView.setAlpha(1f);
+            } catch (IOException ioe) {
+            }
+        }
+    }
+
+    public void stopCamera() {
+        if (mCamera == null) return;
+        mCamera.stopPreview();
+        mCamera.release();
+    }
+
+    private boolean checkCameraHardware() {
+        return checkCameraHardware(getContext());
+    }
+
+    /** Check if this device has a camera */
+    private boolean checkCameraHardware(Context context) {
+        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)){
+            // this device has a camera
+            return true;
+        } else {
+            // no camera on this device
+            return false;
+        }
     }
 
     private void loadBitmap() {
@@ -299,12 +340,14 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
     public static List<MediaPlayer> sMediaPlayers = new ArrayList<MediaPlayer>();
     private TextureView mVideoView;
     private Surface mSurface;
+    private SurfaceTexture mSurfaceTexture;
 
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
         Log.d("Log8", "onSurfaceTextureAvailable");
         mSurface = new Surface(surfaceTexture);
         playVideo();
+        startCamera();
     }
 
     @Override
@@ -316,6 +359,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
         Log.d("Log8", "onSurfaceTextureDestroyed");
         stopVideo();
+        stopCamera();
         return true;
     }
 

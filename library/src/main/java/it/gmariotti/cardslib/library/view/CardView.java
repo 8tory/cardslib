@@ -300,7 +300,6 @@ public class CardView extends BaseCardView {
         mInternalThumbnailLayout = (CardThumbnailView) findViewById(R.id.card_thumbnail_layout);
     }
 
-
     public boolean playVideo() {
         return mInternalThumbnailLayout.playVideo();
     }
