@@ -243,12 +243,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
                 v.removeOnLayoutChangeListener(this);
             }
         });
-        Log.d("Log8", "setupInnerView");
-        if (mCardThumbnail.getUrlResource() != null) {
-            mUri = mCardThumbnail.getUrlResource();
-            Log.d("Log8", "getUrlResource" + mUri);
-            playVideo(mUri);
-        }
+        playVideo(); // try to play
         mImageView.requestLayout();
     }
 
@@ -309,6 +304,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
     public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
         Log.d("Log8", "onSurfaceTextureAvailable");
         mSurface = new Surface(surfaceTexture);
+        playVideo();
     }
 
     @Override
@@ -319,6 +315,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
         Log.d("Log8", "onSurfaceTextureDestroyed");
+        stopVideo();
         return true;
     }
 
@@ -518,33 +515,37 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
     private String mUri;
 
     public void stopVideo() {
-        if (mMediaPlayer != null) {
-            mMediaPlayer.stop();
-            mMediaPlayer.release();
-        }
-    }
-
-    public boolean playVideo() {
-        return playVideo(mUri);
-    }
-
-    private static Map<MediaPlayer, String> sPlayingPlayers = new HashMap<MediaPlayer, String>();
-
-    public boolean playVideo(String uri) {
-        //if (sPlayingPlayers.containsValue(uri)) return true;
         try {
             if (mMediaPlayer != null) {
                 mMediaPlayer.stop();
                 mMediaPlayer.release();
-                String i = sPlayingPlayers.get(mMediaPlayer);
-                Log.d("Log8", "remove: : " + i);
-                sPlayingPlayers.remove(mMediaPlayer);
             }
         } catch (IllegalArgumentException e) {
         } catch (SecurityException e) {
         } catch (IllegalStateException e) {
         }
+        String i = sPlayingPlayers.get(mMediaPlayer);
+        Log.d("Log8", "remove: : " + i);
+        sPlayingPlayers.remove(mMediaPlayer);
+    }
 
+    public boolean playVideo() {
+        if (mCardThumbnail.getUrlResource() != null) {
+            mUri = mCardThumbnail.getUrlResource();
+            Log.d("Log8", "getUrlResource" + mUri);
+        }
+        return playVideo(mUri);
+    }
+
+    private static Map<MediaPlayer, String> sPlayingPlayers = new HashMap<MediaPlayer, String>();
+
+    private boolean isPlaying(String uri) {
+        return sPlayingPlayers.containsValue(uri);
+    }
+
+    public boolean playVideo(String uri) {
+        //if (isPlaying(uri)) return true; // FIXME
+        stopVideo();
         if (isVideoUri(uri) && mSurface != null) {
             calculateVideoSize(Uri.parse(uri));
             final String finalUri = uri;
@@ -555,7 +556,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
                 mMediaPlayer.setDataSource(getContext(), Uri.parse(uri));
                 mMediaPlayer.setSurface(mSurface);
                 mMediaPlayer.setLooping(true);
-                mMediaPlayer.setVolume(0f, 0f);
+                mMediaPlayer.setVolume(0f, 0f); // slient
                 mMediaPlayer.setOnVideoSizeChangedListener(new OnVideoSizeChangedListener() {
                     @Override
                     public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
