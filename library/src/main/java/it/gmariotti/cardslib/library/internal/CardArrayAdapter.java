@@ -127,6 +127,16 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
     // Views
     // -------------------------------------------------------------
 
+    public interface AdapterListener {
+        void onGetView(View view, int position, View convertView, ViewGroup parent);
+    }
+
+    public static class SimpleAdapterListener implements AdapterListener {
+        @Override
+        public void onGetView(View view, int position, View convertView, ViewGroup parent) {
+        }
+    }
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
@@ -184,7 +194,14 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
             }
         }
 
+        listener.onGetView(view, position, convertView, parent);
         return view;
+    }
+
+    private AdapterListener listener = new SimpleAdapterListener();
+
+    public void setAdapterListener(AdapterListener listener) {
+        this.listener = listener;
     }
 
     protected AbsListView.OnScrollListener mExternalOnScrollListener =
