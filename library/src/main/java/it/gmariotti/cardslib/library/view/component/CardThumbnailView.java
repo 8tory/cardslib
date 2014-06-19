@@ -560,6 +560,28 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
 
     private String mUri;
 
+    public void pauseVideo() {
+        try {
+            if (mMediaPlayer != null) {
+                mMediaPlayer.pause();
+            }
+        } catch (IllegalArgumentException e) {
+        } catch (SecurityException e) {
+        } catch (IllegalStateException e) {
+        }
+    }
+
+    public void resumeVideo() {
+        try {
+            if (mMediaPlayer != null) {
+                mMediaPlayer.start();
+            }
+        } catch (IllegalArgumentException e) {
+        } catch (SecurityException e) {
+        } catch (IllegalStateException e) {
+        }
+    }
+
     public void stopVideo() {
         try {
             if (mMediaPlayer != null) {
