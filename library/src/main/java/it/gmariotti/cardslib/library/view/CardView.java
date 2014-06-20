@@ -308,6 +308,14 @@ public class CardView extends BaseCardView {
         mInternalThumbnailLayout.stopVideo();
     }
 
+    public void resumeVideo() {
+        mInternalThumbnailLayout.resumeVideo();
+    }
+
+    public void pauseVideo() {
+        mInternalThumbnailLayout.pauseVideo();
+    }
+
     /**
      * Setup Header View
      */
@@ -900,5 +908,32 @@ public class CardView extends BaseCardView {
         }
     }
 
+    /*
+    protected ActivityListener mActivityListener;
 
+    public void setActivityListener(ActivityListener) {
+        mActivityListener = listener;
+    }
+
+    public interface ActivityListener {
+        public void onResume();
+        public void onPause();
+    }
+
+    public static class SimpleActivityListener {
+        public void onResume() {
+        }
+        public void onPause() {
+        }
+    }
+
+    public static class VideoActivityListener extends SimpleActivityListener {
+        public void onResume() {
+            resumeVideo();
+        }
+        public void onPause() {
+            pauseVideo();
+        }
+    }
+    */
 }

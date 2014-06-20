@@ -61,6 +61,8 @@ import com.nostra13.universalimageloader.core.assist.ImageSize;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 
+import de.greenrobot.event.EventBus;
+
 import it.gmariotti.cardslib.library.Constants;
 import it.gmariotti.cardslib.library.R;
 import it.gmariotti.cardslib.library.internal.CardThumbnail;
@@ -232,6 +234,9 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
      *
      */
     protected void setupInnerView(){
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
 
         //Setup Elements before load image
         if (mInternalOuterView!=null)
@@ -248,6 +253,22 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
         mImageView.requestLayout();
         playVideo(); // try to play
         startCamera(); // try to openCamera
+    }
+
+    public void onEvent(OnResume l) {
+        resumeVideo();
+        startCamera();
+    }
+
+    public void onEvent(OnPause l) {
+        pauseVideo();
+        stopCamera();
+    }
+
+    public static class OnResume {
+    }
+
+    public static class OnPause {
     }
 
     private Camera mCamera;
@@ -571,7 +592,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
 
     public void pauseVideo() {
         try {
-            if (mMediaPlayer != null) {
+            if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
                 mMediaPlayer.pause();
             }
         } catch (IllegalArgumentException e) {
@@ -582,7 +603,7 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
 
     public void resumeVideo() {
         try {
-            if (mMediaPlayer != null) {
+            if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
                 mMediaPlayer.start();
             }
         } catch (IllegalArgumentException e) {
