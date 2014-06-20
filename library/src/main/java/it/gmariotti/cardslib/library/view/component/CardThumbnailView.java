@@ -372,8 +372,9 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
     private float mVideoHeight;
 
     private void calculateVideoSize(Uri uri) {
+        MediaMetadataRetriever metaRetriever = null;
         try {
-            MediaMetadataRetriever metaRetriever = new MediaMetadataRetriever();
+            metaRetriever = new MediaMetadataRetriever();
             metaRetriever.setDataSource(getContext(), uri);
             String height = metaRetriever
                 .extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
@@ -383,6 +384,14 @@ public class CardThumbnailView extends FrameLayout implements CardViewInterface,
             mVideoWidth = Float.parseFloat(width);
         } catch (NumberFormatException e) {
             e.printStackTrace();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+        } finally {
+            if (metaRetriever != null) {
+                metaRetriever.release();
+            }
         }
     }
 
