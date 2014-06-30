@@ -48,6 +48,8 @@ public abstract class BaseCardArrayAdapter extends ArrayAdapter<Card> {
      */
     protected int innerviewTypeCount=1;
 
+    protected List<Card> mCards;
+
     // -------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------
@@ -61,6 +63,11 @@ public abstract class BaseCardArrayAdapter extends ArrayAdapter<Card> {
     public BaseCardArrayAdapter(Context context, List<Card> cards) {
         super(context, 0, cards);
         mContext = context;
+        mCards = cards;
+    }
+
+    public List<Card> getList() {
+        return mCards;
     }
 
     // -------------------------------------------------------------
@@ -110,6 +117,10 @@ public abstract class BaseCardArrayAdapter extends ArrayAdapter<Card> {
      */
     public void setRowLayoutId(int rowLayoutId) {
         this.mRowLayoutId = rowLayoutId;
+    }
+
+    public int getRowLayoutId() {
+        return mRowLayoutId;
     }
 
     /**
