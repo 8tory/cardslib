@@ -25,6 +25,8 @@ import org.lucasr.twowayview.TwoWayView;
 
 import it.gmariotti.cardslib.library.internal.Card;
 
+import android.support.v7.widget.RecyclerView;
+
 /**
  * It is based on Roman Nurik code.
  * See this link for original code https://github.com/romannurik/Android-SwipeToDismiss
@@ -67,7 +69,7 @@ import it.gmariotti.cardslib.library.internal.Card;
  *
  */
 public interface SwipeDismissAdapterViewTouchListener extends View.OnTouchListener {
-    public interface OnScrollListener extends AbsListView.OnScrollListener, TwoWayView.OnScrollListener {
+    public interface OnScrollListener extends AbsListView.OnScrollListener, TwoWayView.OnScrollListener, RecyclerView.OnScrollListener {
     }
 
     /**

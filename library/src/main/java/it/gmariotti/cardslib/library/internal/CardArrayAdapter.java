@@ -22,6 +22,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Parcelable;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -83,7 +84,7 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
     /**
      * {@link AdapterView}
      */
-    protected AdapterView<?> mParentView;
+    protected View mParentView;
 
     protected CardView.OnExpandListAnimatorListener mExpandListAnimatorListener;
 
@@ -247,6 +248,19 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
             }
             mExternalOnScrollListener.onScrollStateChanged(view, scrollState);
         }
+
+        /**
+         * RecyclerView.OnScrollListener
+         */
+        @Override
+        public void onScrolled(int firstVisibleItem, int visibleItemCount) {
+            mExternalOnScrollListener.onScroll(null, firstVisibleItem, visibleItemCount, -1);
+        }
+
+        @Override
+        public void onScrollStateChanged(int scrollState) {
+            mExternalOnScrollListener.onScrollStateChanged(null, scrollState);
+        }
     };
 
     public void setOnScrollListener(AbsListView.OnScrollListener listener) {
@@ -392,7 +406,7 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
     /**
      * @return {@link AdapterView}
      */
-    public AdapterView<?> getParentView() {
+    public View getParentView() {
         return mParentView;
     }
 
@@ -409,6 +423,16 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
         } else if (mParentView instanceof TwoWayView) {
             ((TwoWayView)mParentView).setOnScrollListener(mOnScrollListener);
         }
+    }
+
+    /**
+     * Sets the {@link RecyclerView}
+     *
+     * @param RecyclerView view
+     */
+    public void setParentView(RecyclerView parent) {
+        this.mParentView = parent;
+        parent.setOnScrollListener(mOnScrollListener);
     }
 
     /**
