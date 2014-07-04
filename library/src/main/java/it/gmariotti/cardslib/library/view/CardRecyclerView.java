@@ -79,7 +79,7 @@ public class CardRecyclerView extends RecyclerView implements CardView.OnExpandL
         //Set Layout used by items
         adapter.setRowLayoutId(list_card_layout_resourceID);
 
-        //adapter.setParentView(this); RecyclerView ScrollListener?
+        adapter.setParentView(this); // RecyclerView ScrollListener?
         adapter.setExpandListAnimatorListener(this);
         mAdapter = adapter;
     }

@@ -140,6 +140,10 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        return getView(position, convertView, parent, false);
+    }
+
+    public View getView(int position, View convertView, ViewGroup parent, boolean forceRecycle) {
 
         View view = convertView;
         CardView mCardView;
@@ -164,6 +168,9 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
                 }
             } else {
                 recycle = true;
+            }
+            if (forceRecycle) {
+                recycle = false;
             }
 
             //Setup card
@@ -229,8 +236,8 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
         }
 
         @Override
-        public void onScroll(TwoWayView twoWayView, int i, int i1, int i2) {
-            mExternalOnScrollListener.onScroll(null, i, i1, i2);
+        public void onScroll(TwoWayView twoWayView, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+            mExternalOnScrollListener.onScroll(null, firstVisibleItem, visibleItemCount, totalItemCount);
         }
 
         @Override
@@ -253,8 +260,8 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
          * RecyclerView.OnScrollListener
          */
         @Override
-        public void onScrolled(int firstVisibleItem, int visibleItemCount) {
-            mExternalOnScrollListener.onScroll(null, firstVisibleItem, visibleItemCount, -1);
+        public void onScrolled(int x, int y) {
+            //mExternalOnScrollListener.onScroll(null, firstVisibleItem, visibleItemCount, visibleItemCount);
         }
 
         @Override

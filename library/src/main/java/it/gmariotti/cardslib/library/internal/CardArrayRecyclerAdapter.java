@@ -1,17 +1,19 @@
 package it.gmariotti.cardslib.library.internal;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.View;
 
-
 public class CardArrayRecyclerAdapter extends RecyclerView.Adapter<CardArrayRecyclerAdapter.ViewHolder> {
     private List<Card> items;
-    private int itemLayout;
+    //private int itemLayout;
     private CardArrayAdapter adapter;
+    private Map<String, ViewHolder> positions = new HashMap<String, ViewHolder>();
 
     public CardArrayRecyclerAdapter(CardArrayAdapter adapter) {
         this.adapter = adapter;
@@ -19,27 +21,26 @@ public class CardArrayRecyclerAdapter extends RecyclerView.Adapter<CardArrayRecy
     }
 
     @Override public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(adapter.getRowLayoutId(), null);
-        return new ViewHolder(v, parent);
+        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(adapter.getRowLayoutId(), parent, false), parent);
     }
 
     @Override public void onBindViewHolder(ViewHolder holder, int position) {
         Card item = items.get(position);
-        holder.itemView.setTag(item);
-        adapter.getView(position, holder.itemView, holder.parent);
+        holder.itemView.setTag(position);
+        adapter.getView(position, holder.itemView, holder.parent, positions.get(position) == null);
+        positions.put(String.valueOf(position), holder);
     }
 
     @Override public int getItemCount() {
         return items.size();
+        //return adapter.getViewTypeCount();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        View view;
         ViewGroup parent;
 
         public ViewHolder(View itemView, ViewGroup parent) {
             super(itemView);
-            view = itemView;
             this.parent = parent;
         }
     }
