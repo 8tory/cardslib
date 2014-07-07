@@ -21,6 +21,7 @@ package it.gmariotti.cardslib.library.internal;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.Build;
 import android.os.Parcelable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -169,15 +170,15 @@ public class CardArrayAdapter extends BaseCardArrayAdapter implements UndoBarCon
             } else {
                 recycle = true;
             }
-            if (forceRecycle) {
-                recycle = false;
-            }
 
             //Setup card
             mCardView = (CardView) view.findViewById(R.id.list_cardId);
             if (mCardView != null) {
                 //It is important to set recycle value for inner layout elements
                 mCardView.setForceReplaceInnerLayout(Card.equalsInnerLayout(mCardView.getCard(),mCard));
+                if (Build.VERSION.SDK_INT > 19) {
+                    if (!mCardView.hasSetupThumbnailView()) recycle = false;
+                }
 
                 //It is important to set recycle value for performance issue
                 mCardView.setRecycle(recycle);

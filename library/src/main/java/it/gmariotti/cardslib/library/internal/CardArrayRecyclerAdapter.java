@@ -13,7 +13,6 @@ public class CardArrayRecyclerAdapter extends RecyclerView.Adapter<CardArrayRecy
     private List<Card> items;
     //private int itemLayout;
     private CardArrayAdapter adapter;
-    private Map<String, ViewHolder> positions = new HashMap<String, ViewHolder>();
 
     public CardArrayRecyclerAdapter(CardArrayAdapter adapter) {
         this.adapter = adapter;
@@ -26,9 +25,8 @@ public class CardArrayRecyclerAdapter extends RecyclerView.Adapter<CardArrayRecy
 
     @Override public void onBindViewHolder(ViewHolder holder, int position) {
         Card item = items.get(position);
-        holder.itemView.setTag(position);
-        adapter.getView(position, holder.itemView, holder.parent, positions.get(position) == null);
-        positions.put(String.valueOf(position), holder);
+        holder.itemView.setTag(item);
+        adapter.getView(position, holder.itemView, holder.parent);
     }
 
     @Override public int getItemCount() {

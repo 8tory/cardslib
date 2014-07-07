@@ -405,6 +405,12 @@ public class CardView extends BaseCardView {
         }
     }
 
+    public boolean hasSetupThumbnailView() {
+        return mHasSetupThumbnailView && mCardThumbnail != null;
+    }
+
+    private boolean mHasSetupThumbnailView = false;
+
     /**
      * Setup the Thumbnail View
      */
@@ -415,6 +421,7 @@ public class CardView extends BaseCardView {
                 mInternalThumbnailLayout.setRecycle(isRecycle());
                 mInternalThumbnailLayout.setForceReplaceInnerLayout(isForceReplaceInnerLayout());
                 mInternalThumbnailLayout.addCardThumbnail(mCardThumbnail);
+                mHasSetupThumbnailView = true;
             }else{
                 mInternalThumbnailLayout.setVisibility(GONE);
             }
